@@ -42,7 +42,10 @@ def main():
   oid=text(r['Mã bill'])
   if not re.fullmatch(r'ORD\d+',oid):continue
   header=(date(r['Ngày giao dịch']),text(r['Giờ bán']),text(r['Tiến độ']),text(r['Nguồn']),text(r['Bàn']),text(r['Khu vực']),number(r['Số khách']),text(r['Họ tên khách']),number(r['Tổng tiền hàng']),number(r['Giảm giá HĐ']),number(r['Khách trả']),number(r['Còn nợ']))
-  if oid in order_ref and order_ref[oid][0]!=header:problem('SOURCE_HEADER_CONFLICT',{'order_id':oid,'row':i})
+  # Display name variants are source annotations, not order header conflicts.
+  # All other order-level fields must remain identical across lines.
+  if oid in order_ref and order_ref[oid][0][:7]+order_ref[oid][0][8:]!=header[:7]+header[8:]:
+   problem('SOURCE_HEADER_CONFLICT',{'order_id':oid,'row':i})
   else:order_ref.setdefault(oid,(header,i))
   sig=tuple((key,text(val)) for key,val in sorted(r.items()))
   if not hasattr(main,'seen'):main.seen={}
