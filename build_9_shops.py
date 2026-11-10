@@ -115,17 +115,35 @@ def create_db(path):
  c.execute('CREATE INDEX idx_lineage_entity ON source_lineage(entity_table,entity_uid)');return c
 
 def main():
- a=argparse.ArgumentParser();a.add_argument('--data-root',required=True);a.add_argument('--output',required=True);a.add_argument('--shops',nargs='*',default=[f'dev_{i:03d}' for i in SHOPS]);args=a.parse_args()
+ a=argparse.ArgumentParser();a.add_argument('--data-root',required=True);a.add_argument('--output',required=True);a.add_argument('--shops',nargs='*',default=[f'dev_{i:03d}' for i in SHOPS]);a.add_argument('--overwrite',action='store_true',help='Explicitly replace an existing shop SQLite (destroys imported references; back up first)');args=a.parse_args()
  root=Path(args.data_root);out=Path(args.output);out.mkdir(parents=True,exist_ok=True);manifest=[]
  for shop in args.shops:
   folder=root/'public_test'/'data'/shop
   if not folder.exists():raise SystemExit(f'Missing source folder {folder}')
   target=out/f'{shop}.sqlite'
-  if target.exists():target.unlink()
+  if target.exists():
+   if not args.overwrite:raise SystemExit(f'REFUSING TO OVERWRITE EXISTING DATABASE {target}. Use a new --output directory, or explicitly --overwrite after backup.')
+   target.unlink()
   c=create_db(target);version=uid(shop,'mapping_candidate_v1');c.execute('INSERT INTO dataset_versions VALUES(?,?,?,?,?,?)',(version,shop,'0.3.0-candidate','evidence-candidate',dt.datetime.now(dt.timezone.utc).isoformat(),'PROVISIONAL_NOT_FOR_PRODUCTION'))
   stats=Counter();unmapped=[];issues=Counter();source_objects=0;grouped=set();total_files=0
+  # dev_006 order lines carry a product SKU and an order ID, not a product name
+  # or transaction date. Both can be resolved against explicit, unique POS keys.
+  pos_product_names={};pos_order_fields={}
+  if shop=='dev_006':
+   with sqlite3.connect(f'file:{(folder/"pos.sqlite").resolve()}?mode=ro',uri=True) as lookup:
+    for sid,sku,name in lookup.execute('SELECT IDCuaHang,MaHangHoa,TenGoi FROM san_pham'):
+     key=(str(sid),str(sku))
+     if key in pos_product_names:raise ValueError(f'dev_006 duplicated product key: {key}')
+     pos_product_names[key]=name
+    for sid,bid,when,status in lookup.execute('SELECT IDCuaHang,MaHoaDon,ThoiGianLap,TinhTrang FROM don_hang'):
+     key=(str(sid),str(bid))
+     if key in pos_order_fields:raise ValueError(f'dev_006 duplicated order key: {key}')
+     pos_order_fields[key]=(when,status)
   def problem(src,row,code,detail,severity='WARNING'):
-   issues[code]+=1;c.execute('INSERT OR IGNORE INTO validation_issues VALUES(?,?,?,?,?,?,?,?)',(uid(src,row,code),shop,src,row,None,code,severity,str(detail)[:400]))
+   result=c.execute('INSERT OR IGNORE INTO validation_issues VALUES(?,?,?,?,?,?,?,?)',(uid(src,row,code),shop,src,row,None,code,severity,str(detail)[:400]))
+   if result.rowcount:
+    issues[code]+=1
+    c.execute('UPDATE staging_rows SET issue_count=COALESCE(issue_count,0)+1 WHERE source_id=? AND source_row=?',(src,row))
   def consume(p,obj,iterator,fmt):
    nonlocal source_objects
    stem=p.stem;selector=stem if stem in EXPLICIT.get(shop,{}) else obj
@@ -152,11 +170,31 @@ def main():
     yield from first[header_idx+1:];yield from it
    for rn,vals in row_iter():
     if not any(v is not None and str(v).strip() for v in vals):continue
+    # Preserve every nonblank source record BEFORE any semantic validation.
+    # Indexed column names retain duplicate/blank headers without data loss.
+    raw_preserved={f'{i}:{h or "col"}':vals[i] if i<len(vals) else None for i,h in enumerate(headers)}
+    for i in range(len(headers),len(vals)):
+     raw_preserved[f'{i}:extra']=vals[i]
+    c.execute('INSERT INTO staging_rows VALUES(?,?,?,?,?,?)',(
+     uid(src,rn),src,rn,json.dumps(raw_preserved,ensure_ascii=False,default=str),None,0))
     raw={h:vals[i] if i<len(vals) else None for i,h in enumerate(headers) if h}
-    if not raw:continue
-    # repeated header rows or section labels should not enter mart
-    if sum(str(raw.get(h,''))==h for h in headers if h)>2:continue
+    if not raw:
+     problem(src,rn,'UNREADABLE_ROW','nonblank row without usable header');continue
+    # Repeated headers are source records, but must not enter any mart.
+    if sum(str(raw.get(h,''))==h for h in headers if h)>2:
+     problem(src,rn,'REPEATED_HEADER','header repeated within body');continue
     bid,bid_col=pick(raw,GRAINS.get(grain,([],[]))[0]);amount_val,amount_col=pick(raw,GRAINS.get(grain,([],[]))[1]);dt_val,dt_col=pick(raw,DATE);name,name_col=pick(raw,NAME);qty,qty_col=pick(raw,QTY);unit,unit_col=pick(raw,UNIT);status,status_col=pick(raw,STATUS)
+    resolved_sku=None;resolved_order_key=None
+    if grain=='order_lines' and shop=='dev_006':
+     resolved_sku=raw.get('MaHangHoa')
+     resolved_order_key=(str(raw.get('IDCuaHang')),str(raw.get('MaHoaDon')))
+     if not name and resolved_sku is not None:
+      name=pos_product_names.get((str(raw.get('IDCuaHang')),str(resolved_sku)))
+      if name:name_col='MaHangHoa'  # join key, not a direct name cell
+     if resolved_order_key in pos_order_fields:
+      when,order_status=pos_order_fields[resolved_order_key]
+      if dt_val is None:dt_val,dt_col=when,'MaHoaDon'  # join key into don_hang
+      if status is None:status,status_col=order_status,'MaHoaDon'
     if grain=='order_lines' and shop in ('dev_011','dev_014'):
      # These journals use STT as order/group indicator; blank continuation rows
      # are not assigned a document without validated group boundary.
@@ -183,12 +221,21 @@ def main():
     if grain=='order_lines' and not name:
      problem(src,rn,'MISSING_ITEM','line missing item; staged only');continue
     parsed={'business_id':str(bid).strip() if bid is not None else None,'event_date':date(dt_val,p.stem+' '+obj),'amount':money(amount_val),'quantity':str(qty) if qty is not None else None,'unit':str(unit) if unit is not None else None,'display_name':str(name) if name is not None else None}
-    c.execute('INSERT OR REPLACE INTO staging_rows VALUES(?,?,?,?,?,?)',(uid(src,rn),src,rn,json.dumps(raw,ensure_ascii=False,default=str),json.dumps(parsed,ensure_ascii=False),0))
+    c.execute('UPDATE staging_rows SET parsed_json=? WHERE staging_uid=?',
+     (json.dumps(parsed,ensure_ascii=False,default=str),uid(src,rn)))
     ent=uid(shop,grain_row,src,rn);doc=uid(shop,'document',src,bid) if bid is not None else None
     attrs={'source_grain':grain_row,'source_object':obj,'source_values':raw,'date_unparsed':str(dt_val) if dt_val is not None and not parsed['event_date'] else None,'amount_unparsed':str(amount_val) if amount_val is not None and parsed['amount'] is None else None}
+    if grain_row=='order_lines' and shop=='dev_006':
+     attrs.update({'item_sku':resolved_sku,'product_lookup':'san_pham(IDCuaHang,MaHangHoa)','order_lookup':'don_hang(IDCuaHang,MaHoaDon)','derived_name':bool(resolved_sku),'derived_order_fields':bool(resolved_order_key in pos_order_fields)})
     c.execute(f'INSERT INTO {grain_row} VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(ent,shop,src,rn,parsed['business_id'],parsed['event_date'],parsed['amount'],parsed['quantity'],parsed['unit'],doc,parsed['display_name'],str(status) if status is not None else None,json.dumps(attrs,ensure_ascii=False,default=str),version));stats[grain_row]+=1
     for field,col,val in [('business_id',bid_col,bid),('event_date',dt_col,dt_val),('amount',amount_col,amount_val),('quantity',qty_col,qty),('unit',unit_col,unit),('display_name',name_col,name),('status',status_col,status)]:
-     if col is not None:c.execute('INSERT OR IGNORE INTO source_lineage VALUES(?,?,?,?,?,?,?,?,?,?)',(uid(ent,field,col),grain_row,ent,shop,src,rn,col,'m01_candidate:'+field,json.dumps(val,ensure_ascii=False,default=str),version))
+     if col is not None:
+      # A lookup-derived value must cite its raw foreign key, not pretend the
+      # joined product name or order date came from the order-line source cell.
+      linked=(shop=='dev_006' and grain_row=='order_lines' and col=='MaHoaDon' and field in ('event_date','status')) or (shop=='dev_006' and grain_row=='order_lines' and col=='MaHangHoa' and field=='display_name')
+      transform='m01_candidate:validated_pos_lookup_'+field if linked else 'm01_candidate:'+field
+      source_raw=raw.get(col) if linked else val
+      c.execute('INSERT OR IGNORE INTO source_lineage VALUES(?,?,?,?,?,?,?,?,?,?)',(uid(ent,field,col),grain_row,ent,shop,src,rn,col,transform,json.dumps(source_raw,ensure_ascii=False,default=str),version))
     c.execute('INSERT OR IGNORE INTO source_lineage VALUES(?,?,?,?,?,?,?,?,?,?)',(uid(ent,'row'),grain_row,ent,shop,src,rn,None,'source_row',None,version))
    c.commit()
   for p in sorted(folder.iterdir()):
