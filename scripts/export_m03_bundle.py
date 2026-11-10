@@ -24,7 +24,7 @@ def inspect(db, config):
         missing = [t for t in ['dataset_versions','raw_sources','staging_rows','source_lineage','validation_issues'] if t not in tables]
         if missing: raise ValueError(f'{db}: missing required tables {missing}')
         physical = {t: int(c.execute(f'SELECT COUNT(*) FROM "{t}"').fetchone()[0]) for t in ENTITIES if t in tables}
-        differences = {t: {'catalog': cat['row_counts'].get(t), 'actual': n} for t,n in physical.items() if cat['row_counts'].get(t) != n}
+        differences = {t: {'catalog': cat.get('row_counts',{}).get(t,0), 'actual': n} for t,n in physical.items() if cat.get('row_counts',{}).get(t,0) != n}
         issues = [dict(r) for r in c.execute('SELECT code,severity,COUNT(*) AS count FROM validation_issues GROUP BY code,severity ORDER BY code,severity')]
         dates = {}
         for t in physical:
@@ -32,7 +32,7 @@ def inspect(db, config):
             if a is not None: dates[t] = {'min':a,'max':b}
         sources = [dict(r) for r in c.execute('SELECT source_path,source_object,source_format,source_sha256,header_row FROM raw_sources ORDER BY source_path,source_object')]
         version = c.execute('SELECT version_id,status,contract_version FROM dataset_versions WHERE shop_id=?',(cat['shop_id'],)).fetchall()
-        if len(version)!=1 or version[0]['version_id'] != cat['version_id']:
+        if len(version)!=1 or version[0]['version_id'] != cat['version_id'] or version[0]['status'] != cat['validation_status']:
             raise ValueError(f'{db}: inconsistent version')
         cols = {t:[dict(r) for r in c.execute(f'PRAGMA table_info("{t}")')] for t in sorted(tables) if not t.startswith('sqlite_')}
         audit = {t:int(c.execute(f'SELECT COUNT(*) FROM "{t}"').fetchone()[0]) for t in ['raw_sources','staging_rows','source_lineage','validation_issues']}
@@ -55,7 +55,7 @@ def main():
         item=inspect(db,config)
         item['config_approval_status']=config.get('approval_status')
         item['mapping_source_count']=len(config['sources'])
-        item['m03_eligible']=bool(config.get('approval_status')=='APPROVED' and item['catalog']['validation_status']=='APPROVED' and not item['catalog_count_mismatches'] and item['observed_source_count']==item['config_source_count'])
+        item['m03_eligible']=bool(config.get('approval_status')=='APPROVED' and item['catalog'].get('approval_status') in ('APPROVED','PRODUCTION_APPROVED') and item['catalog']['validation_status']=='APPROVED' and not item['issue_breakdown'] and not item['catalog_count_mismatches'] and item['observed_source_count']==item['config_source_count'])
         results.append(item)
         (a.output/f"{cp.stem}_catalog.json").write_text(json.dumps(item['catalog'],ensure_ascii=False,indent=2),encoding='utf-8')
         (a.output/f"{cp.stem}_metadata.json").write_text(json.dumps({k:v for k,v in item.items() if k not in ('catalog','columns')},ensure_ascii=False,indent=2),encoding='utf-8')
@@ -77,6 +77,8 @@ def main():
         if not r['mapping_source_count']:blockers.append('no active source mapping')
         if r['config_approval_status']!='APPROVED':blockers.append('mapping not approved')
         if r['catalog_count_mismatches']:blockers.append('catalog/DB count mismatch')
+        if r['issue_breakdown']:blockers.append('unresolved validation issues')
+        if r['catalog'].get('approval_status') not in ('APPROVED','PRODUCTION_APPROVED'):blockers.append('catalog not approved')
         if r['observed_source_count']!=r['config_source_count']:blockers.append('source coverage mismatch')
         if blockers:summary.append(f"- {r['shop_id']}: {', '.join(blockers)}")
     summary+=['','## Required for M03','- Read manifest.json and schema_contract.json first.','- Treat unsupported tables and capabilities as unknown, not zero.','- Query database files only when present and approved for intended use.','- Preserve shop_id and version_id in every downstream result.','- Never interpret PROVISIONAL_NOT_FOR_PRODUCTION as approved.','- Database and raw data remain local; metadata may still contain sensitive source paths and must be reviewed before sharing.']
