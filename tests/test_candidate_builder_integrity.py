@@ -91,7 +91,8 @@ class CandidateBuilderIntegrityTests(unittest.TestCase):
             with sqlite3.connect(out/'dev_006.sqlite') as db:
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM source_reference_records').fetchone()[0],4)
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM staging_rows').fetchone()[0],4)
-                self.assertEqual(db.execute('SELECT COUNT(*) FROM raw_sources').fetchone()[0],4)
+                # Both empty POS lookup tables are registered as raw sources too.
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM raw_sources').fetchone()[0],6)
                 self.assertEqual(db.execute("SELECT COUNT(*) FROM source_lineage WHERE entity_table='source_reference_records'").fetchone()[0],4)
                 cat=json.loads(db.execute('SELECT catalog_json FROM business_catalog').fetchone()[0])
                 self.assertEqual(cat['unmapped_objects'],[])
