@@ -222,6 +222,13 @@ def main():
        shop,src,rn,id_col,'reference_source_row',json.dumps(ref_key,ensure_ascii=False,default=str),version))
      continue
     bid,bid_col=pick(raw,GRAINS.get(grain,([],[]))[0]);amount_val,amount_col=pick(raw,GRAINS.get(grain,([],[]))[1]);dt_val,dt_col=pick(raw,DATE);name,name_col=pick(raw,NAME);qty,qty_col=pick(raw,QTY);unit,unit_col=pick(raw,UNIT);status,status_col=pick(raw,STATUS)
+    # dev006 NgayLap mixes d/m/y and Excel-serial strings (e.g. "45748").
+    # ThoiGianLap is the canonical POS timestamp and is already the field
+    # used by order_lines via their validated order join.
+    if shop=='dev_006' and grain=='orders':
+     timestamp=raw.get('ThoiGianLap')
+     if timestamp is not None and str(timestamp).strip():
+      dt_val,dt_col=timestamp,'ThoiGianLap'
     resolved_sku=None;resolved_order_key=None
     if grain=='order_lines' and shop=='dev_006':
      resolved_sku=raw.get('MaHangHoa')
