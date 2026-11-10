@@ -50,8 +50,8 @@ The script reads existing candidates in
 `outputs/families13_20261110_174922`, checks the structural mart's
 semantic risks for **all 13**, then independently verifies the source
 against candidates for dev_001, dev_009 and dev_012. It writes
-`triage_13.json`, `dev009_acceptance.json` and
-`dev012_acceptance.json`.
+`triage_13.json`, `dev001_acceptance.json`, `dev009_acceptance.json`
+and `dev012_acceptance.json`.
 
 If and **only if** all three audits pass, explicitly authorize three scoped
 derived releases:
@@ -60,16 +60,16 @@ derived releases:
 bash scripts/semantic_phase_13.sh --approve "Data owner"
 ```
 
-It creates versioned `outputs/semantic13_*/dev_009_release` and
-`dev_012_release`, each with SHA256 manifest, SQLite and QA report. It
+It creates versioned `outputs/semantic13_*/dev_001_release`,
+`dev_009_release` and `dev_012_release`, each with SHA256 manifest, SQLite and QA report. It
 never touches approved dev_006 releases, other candidate SQLite, or
 the public test source files.
 
 **Fail-closed policy:** unreconciled or ambiguous source rows, invalid
 source hashes, incorrect catalog status, missing physical provenance,
 unsupported date/currency encoding, or unsupported business fields
-must block approval. Even a successful release for dev009/dev012 is
-not blanket approval for all 111+ question forms or for 11 other shops.
+must block approval. Even a successful release for dev001/dev009/dev012 is
+not blanket approval for all question forms or for the other 10 shops.
 
 ### Source-specific acceptance invariants
 
