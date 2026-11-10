@@ -43,7 +43,11 @@ def issue(pos,prior,out,approver):
     finally:con.close()
     result=audit(pos,prior_db)
     if not result['pass']:
-        raise ValueError('Extended KPI independent source parity FAILED: '+repr(result['failures'][:10]))
+        failed=out.parent/(out.name+'.failed_qa.json')
+        failed.parent.mkdir(parents=True,exist_ok=True)
+        failed.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        raise ValueError('Extended KPI parity failed; full diagnostics: '+str(failed)+
+                         ' | '+repr(result['failures'][:5]))
     out.mkdir(parents=True,exist_ok=False)
     report=out/'extended_qa_report.json'
     report.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
