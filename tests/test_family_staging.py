@@ -34,6 +34,19 @@ class FamilyStagingTests(unittest.TestCase):
                 self.assertEqual(cat['business_marts_approved'],[])
                 self.assertEqual(cat['approval_status'],'CANDIDATE_NOT_APPROVED')
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM family_staging_rows').fetchone()[0],3)
+            from scripts.m03_consumer import (NotApprovedForKPI,
+                open_business_dataset,query_entity_count)
+            with self.assertRaises(NotApprovedForKPI):
+                open_business_dataset(root/'output/dev_009.sqlite')
+            reader,catalog=open_business_dataset(root/'output/dev_009.sqlite',
+                                                  allow_provisional_sandbox=True)
+            try:
+                self.assertEqual(query_entity_count(reader,catalog,'family_staging_rows'),3)
+                self.assertEqual(query_entity_count(reader,catalog,'source_objects'),1)
+                with self.assertRaises(ValueError):
+                    query_entity_count(reader,catalog,'order_lines')
+            finally:
+                reader.close()
             with self.assertRaises(FileExistsError):
                 build('dev_009',root,contracts,root/'output')
 
