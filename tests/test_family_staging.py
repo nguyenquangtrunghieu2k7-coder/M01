@@ -34,6 +34,9 @@ class FamilyStagingTests(unittest.TestCase):
                 self.assertEqual(cat['business_marts_approved'],[])
                 self.assertEqual(cat['approval_status'],'CANDIDATE_NOT_APPROVED')
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM family_staging_rows').fetchone()[0],3)
+            from scripts.verify_family_staging import verify
+            audit=verify(root/'output/dev_009.sqlite',root)
+            self.assertTrue(audit['source_to_staging_pass'],audit['problems'])
             from scripts.m03_consumer import (NotApprovedForKPI,
                 open_business_dataset,query_entity_count)
             with self.assertRaises(NotApprovedForKPI):
@@ -47,6 +50,11 @@ class FamilyStagingTests(unittest.TestCase):
                     query_entity_count(reader,catalog,'order_lines')
             finally:
                 reader.close()
+            # A mutation of even one staged physical cell must be caught.
+            with sqlite3.connect(root/'output/dev_009.sqlite') as db:
+                db.execute("UPDATE family_staging_rows SET raw_values_json='[]' WHERE source_row=2")
+            corrupt=verify(root/'output/dev_009.sqlite',root)
+            self.assertFalse(corrupt['source_to_staging_pass'])
             with self.assertRaises(FileExistsError):
                 build('dev_009',root,contracts,root/'output')
 
