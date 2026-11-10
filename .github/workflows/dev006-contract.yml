@@ -15,6 +15,7 @@ on:
       - 'scripts/dev006_extended_kpis.py'
       - 'scripts/verify_dev006_extended_kpis.py'
       - 'scripts/release_dev006_extended.py'
+      - 'scripts/extend_dev006.sh'
       - '.github/workflows/dev006-contract.yml'
 jobs:
   regression:
@@ -27,7 +28,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install openpyxl
       - name: Validate local release shell syntax
-        run: bash -n scripts/build_and_release_dev006.sh
+        run: bash -n scripts/build_and_release_dev006.sh scripts/extend_dev006.sh
       - name: Compile dev006 acceptance and release scripts
         run: python -m py_compile scripts/release_dev006_businessdata.py scripts/verify_dev006_m03_parity.py scripts/m03_consumer.py scripts/dev006_extended_kpis.py scripts/verify_dev006_extended_kpis.py scripts/release_dev006_extended.py build_9_shops.py
       - name: Candidate builder and exact dedup regressions
