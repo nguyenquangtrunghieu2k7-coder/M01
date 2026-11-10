@@ -14,7 +14,10 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-from family_inventory import FAMILIES, inventory
+try:
+    from .family_inventory import FAMILIES, inventory
+except ImportError:
+    from family_inventory import FAMILIES, inventory
 
 try:
     import openpyxl
