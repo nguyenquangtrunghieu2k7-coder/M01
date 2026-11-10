@@ -197,6 +197,29 @@ def publish(source,candidate,out,approver):
         db.executemany('INSERT INTO duplicate_source_rows VALUES(?,?,?,?,?,?,?)',
             [('dev009:'+str(rn),SHOP,sid,rn,origin,'orders',cat['version_id'])
              for rn,origin in copies])
+        # Preserve the original physical rows and rebind their lineage to
+        # the explicit duplicate ledger, never to a deleted order entity.
+        for rn,origin in copies:
+            duid='dev009:'+str(rn)
+            db.execute("""UPDATE source_lineage
+                SET entity_table='duplicate_source_rows',entity_uid=?,
+                    transform_id='exact_invoice_export_duplicate'
+                WHERE shop_id=? AND source_id=? AND source_row=? AND entity_table='orders'""",
+                (duid,SHOP,sid,rn))
+            db.execute("""UPDATE staging_rows SET parsed_json=?
+                WHERE source_id=? AND source_row=?""",
+                (json.dumps({'classification':'EXACT_EXPORT_DUPLICATE',
+                             'retained_source_row':origin,'count_in_kpi':False}),
+                 sid,rn))
+        for rn in summaries:
+            db.execute("""UPDATE staging_rows SET parsed_json=?
+                WHERE source_id=? AND source_row=?""",
+                (json.dumps({'classification':'DAILY_SUBTOTAL_NOT_INVOICE',
+                             'count_in_kpi':False}),sid,rn))
+            db.execute("""UPDATE validation_issues
+                SET code='SOURCE_DAILY_SUBTOTAL_NOT_INVOICE',severity='INFO'
+                WHERE shop_id=? AND source_id=? AND source_row=?
+                  AND code='MISSING_BUSINESS_ID'""",(SHOP,sid,rn))
         cat['validation_status']='APPROVED'
         cat['approval_status']='PRODUCTION_APPROVED'
         cat['approved_metrics']=list(APPROVED)
