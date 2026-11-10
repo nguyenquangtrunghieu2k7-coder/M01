@@ -13,6 +13,7 @@ on:
       - 'tests/test_dev009_semantic_release.py'
       - 'scripts/dev012_semantic_release.py'
       - 'tests/test_dev012_semantic_release.py'
+      - 'scripts/semantic_phase_13.sh'
       - 'tests/test_13_family_rollout.py'
       - 'scripts/m03_consumer.py'
       - 'scripts/verify_dev006_*.py'
@@ -36,7 +37,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install openpyxl
       - name: Validate local release shell syntax
-        run: bash -n scripts/build_and_release_dev006.sh scripts/extend_dev006.sh
+        run: bash -n scripts/build_and_release_dev006.sh scripts/extend_dev006.sh scripts/semantic_phase_13.sh
       - name: Compile dev006 acceptance and release scripts
         run: python -m py_compile scripts/release_dev006_businessdata.py scripts/verify_dev006_m03_parity.py scripts/m03_consumer.py scripts/dev006_extended_kpis.py scripts/verify_dev006_extended_kpis.py scripts/release_dev006_extended.py scripts/family_inventory.py scripts/rollout_13_families.py scripts/dev009_semantic_release.py scripts/triage_13_semantics.py scripts/dev012_semantic_release.py build_9_shops.py
       - name: Candidate builder and exact dedup regressions
