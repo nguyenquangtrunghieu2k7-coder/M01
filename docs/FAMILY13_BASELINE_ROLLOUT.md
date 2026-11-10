@@ -17,11 +17,12 @@ release.
    per shop. It keeps each nonblank row at its original file/sheet/row
    grain, with indexed raw cell values, source SHA256, explicit role, and
    per-object staging counts. It cannot overwrite previous files.
-4. Each candidate exposes an M03-compatible `business_catalog` and
+4. `scripts/verify_family_staging.py` independently reopens every source object, verifies SHA256 and compares every nonblank source row to its staged values.
+5. Each candidate exposes an M03-compatible `business_catalog` and
    `dataset_versions`. Sandbox M03 can inspect source counts, but the
    official KPI consumer still **fails closed** because the candidate is
    `PROVISIONAL_NOT_FOR_PRODUCTION`, with **no approved KPI metrics**.
-5. CI runs package/import, per-family grain, and fail-closed M03 tests.
+6. CI runs package/import, per-family grain, and fail-closed M03 tests.
    Actual full-source staging and count QA must be run on the source files.
 
 ## Source coverage and distinct family contracts
@@ -64,6 +65,7 @@ directory:
 - `candidates/dev_001.sqlite` ... `dev_014.sqlite` excluding dev_006
 - `candidates/family_stage_manifest.json` with per-shop/per-source row
   counts, role counts and SQLite integrity results
+- `family_source_parity.json` with independent source-row QA
 
 Expected pass counts: **13/13 shops** and **146/146 source objects**,
 with nonblank staging row counts measured from the real source. No
