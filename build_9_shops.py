@@ -35,7 +35,7 @@ EXPLICIT={
 'dev_003':{'BanHang':'orders','BanHang_HangHoa':'products','BanHang_KhachHang':'customers','BanHang_DonViQuyDoi':'unit_conversions','BanHang_LichSuGia':'price_history','BanHang_PhieuThu':'payments','SoTay_NhapHang':'purchase_lines','SoTay_ChiPhi':'expenses','ton_kho':'inventory_snapshots'},
 'dev_004':{'SoBanHang':'order_lines','SoNhapHang':'purchase_lines','SoGiaoHang':'deliveries','TonKho':'inventory_snapshots','DanhMuc':'unit_conversions','BangGia':'price_history','SoHanNo':'installment_schedules'},
 'dev_005':{'DonHang_ChiTiet':'order_lines','DanhSachSanPham':'products','DanhSachQuyDoi':'unit_conversions','DonNhapHang_ChiTiet':'purchase_lines','DonNhapHang':'purchase_receipts','DonHang_Lo':'lot_allocations'},
-'dev_006':{'don_hang':'orders','chi_tiet_don':'order_lines','thanh_toan':'payments','san_pham':'products','khach_hang':'customers','phieu_nhap':'purchase_receipts','chi_tiet_nhap':'purchase_lines','tra_hang':'returns','the_kho':'inventory_events','lich_su_gia':'price_history','lo_hang':'lots','chi_tiet_don_lo':'lot_allocations','don_vi_sp':'unit_conversions'},
+'dev_006':{'chi_nhanh':'__reference__','nha_cung_cap':'__reference__','nhan_vien':'__reference__','thong_tin_thuoc':'__reference__','don_hang':'orders','chi_tiet_don':'order_lines','thanh_toan':'payments','san_pham':'products','khach_hang':'customers','phieu_nhap':'purchase_receipts','chi_tiet_nhap':'purchase_lines','tra_hang':'returns','the_kho':'inventory_events','lich_su_gia':'price_history','lo_hang':'lots','chi_tiet_don_lo':'lot_allocations','don_vi_sp':'unit_conversions'},
 'dev_007':{'chi_tiet_hoa_don':'order_lines','chi_tiet_nhap_hang':'purchase_lines','danh_muc_hang':'products'},
 'dev_008':{'ChiTietHoaDon_1':'order_lines','ChiTietHoaDon_2':'order_lines','ChiTietNhapHang':'purchase_lines','DanhMucHang':'products'},
 'dev_011':{'Sổ bán hàng':'order_lines','Ghi tắt':'entity_aliases'},
@@ -110,7 +110,8 @@ def create_db(path):
  CREATE TABLE staging_rows(staging_uid TEXT PRIMARY KEY,source_id TEXT,source_row INTEGER,raw_json TEXT,parsed_json TEXT,issue_count INTEGER);
  CREATE TABLE validation_issues(issue_uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,source_row INTEGER,source_cell TEXT,code TEXT,severity TEXT,detail TEXT);
  CREATE TABLE source_lineage(lineage_uid TEXT PRIMARY KEY,entity_table TEXT,entity_uid TEXT,shop_id TEXT,source_id TEXT,source_row INTEGER,source_cell TEXT,transform_id TEXT,raw_value TEXT,version_id TEXT);
- CREATE TABLE business_catalog(catalog_key TEXT PRIMARY KEY,catalog_json TEXT);''')
+ CREATE TABLE business_catalog(catalog_key TEXT PRIMARY KEY,catalog_json TEXT);
+ CREATE TABLE source_reference_records(reference_uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,source_object TEXT,source_row INTEGER,reference_key TEXT,raw_json TEXT,version_id TEXT);''')
  for t in TABLES:c.execute(f'''CREATE TABLE {t}(uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,source_row INTEGER,source_business_id TEXT,event_date TEXT,amount TEXT,quantity TEXT,unit TEXT,document_uid TEXT,display_name TEXT,status_raw TEXT,attributes_json TEXT,version_id TEXT)''')
  c.execute('CREATE INDEX idx_lineage_entity ON source_lineage(entity_table,entity_uid)');return c
 
@@ -125,7 +126,7 @@ def main():
    if not args.overwrite:raise SystemExit(f'REFUSING TO OVERWRITE EXISTING DATABASE {target}. Use a new --output directory, or explicitly --overwrite after backup.')
    target.unlink()
   c=create_db(target);version=uid(shop,'mapping_candidate_v1');c.execute('INSERT INTO dataset_versions VALUES(?,?,?,?,?,?)',(version,shop,'0.3.0-candidate','evidence-candidate',dt.datetime.now(dt.timezone.utc).isoformat(),'PROVISIONAL_NOT_FOR_PRODUCTION'))
-  stats=Counter();unmapped=[];issues=Counter();source_objects=0;grouped=set();total_files=0
+  stats=Counter();reference_counts=Counter();unmapped=[];issues=Counter();source_objects=0;grouped=set();total_files=0
   # dev_006 order lines carry a product SKU and an order ID, not a product name
   # or transaction date. Both can be resolved against explicit, unique POS keys.
   pos_product_names={};pos_order_fields={}
@@ -183,6 +184,22 @@ def main():
     # Repeated headers are source records, but must not enter any mart.
     if sum(str(raw.get(h,''))==h for h in headers if h)>2:
      problem(src,rn,'REPEATED_HEADER','header repeated within body');continue
+    # Non-transactional reference objects are retained without inventing mart semantics.
+    # A product's pharmaceutical attributes are not themselves saleable products.
+    if grain=='__reference__':
+     id_col={'chi_nhanh':'MaChiNhanh','nha_cung_cap':'MaNhaCungCap','nhan_vien':'MaNhanVien','thong_tin_thuoc':'MaHangHoa'}.get(obj)
+     ref_key=raw.get(id_col) if id_col else None
+     if ref_key is None or not str(ref_key).strip():
+      problem(src,rn,'MISSING_REFERENCE_KEY',f'{obj} missing {id_col}');continue
+     composite=uid(shop,obj,raw.get('IDCuaHang'),ref_key)
+     c.execute('INSERT INTO source_reference_records VALUES(?,?,?,?,?,?,?,?)',(
+       uid(src,rn,'reference'),shop,src,obj,rn,composite,
+       json.dumps(raw_preserved,ensure_ascii=False,default=str),version))
+     reference_counts[obj]+=1
+     c.execute('INSERT OR IGNORE INTO source_lineage VALUES(?,?,?,?,?,?,?,?,?,?)',(
+       uid(src,rn,'reference_lineage'), 'source_reference_records',uid(src,rn,'reference'),
+       shop,src,rn,id_col,'reference_source_row',json.dumps(ref_key,ensure_ascii=False,default=str),version))
+     continue
     bid,bid_col=pick(raw,GRAINS.get(grain,([],[]))[0]);amount_val,amount_col=pick(raw,GRAINS.get(grain,([],[]))[1]);dt_val,dt_col=pick(raw,DATE);name,name_col=pick(raw,NAME);qty,qty_col=pick(raw,QTY);unit,unit_col=pick(raw,UNIT);status,status_col=pick(raw,STATUS)
     resolved_sku=None;resolved_order_key=None
     if grain=='order_lines' and shop=='dev_006':
@@ -259,9 +276,9 @@ def main():
       for rn,row in enumerate(source.execute('SELECT * FROM "'+obj+'"'),2):yield rn,row
      consume(p,obj,get_rows(),'sqlite')
     source.close()
-  catalog={'shop_id':shop,'version_id':version,'validation_status':'PROVISIONAL_NOT_FOR_PRODUCTION','contract_version':'0.3.0-candidate','source_files_seen':total_files,'source_objects_processed':source_objects,'row_counts':dict(stats),'issue_counts':dict(issues),'unmapped_objects':unmapped,'capabilities':{t:stats[t]>0 for t in TABLES},'approval_status':'CANDIDATE_NOT_APPROVED','notes':'Candidate mappings, no inferred document totals. Raw data in staging, source provenance in lineage. No official KPI approval.'}
+  catalog={'shop_id':shop,'version_id':version,'validation_status':'PROVISIONAL_NOT_FOR_PRODUCTION','contract_version':'0.3.0-candidate','source_files_seen':total_files,'source_objects_processed':source_objects,'row_counts':dict(stats),'reference_counts':dict(reference_counts),'issue_counts':dict(issues),'unmapped_objects':unmapped,'capabilities':{t:stats[t]>0 for t in TABLES},'approval_status':'CANDIDATE_NOT_APPROVED','notes':'Candidate mappings, no inferred document totals. Raw data in staging, source provenance in lineage. No official KPI approval.'}
   c.execute('INSERT INTO business_catalog VALUES(?,?)',(shop,json.dumps(catalog,ensure_ascii=False)));c.commit();integrity=c.execute('PRAGMA integrity_check').fetchone()[0];c.close()
-  manifest.append({'shop':shop,'integrity':integrity,'sources':source_objects,'rows':dict(stats),'unmapped':len(unmapped),'issues':dict(issues)});print(shop,'sources',source_objects,'rows',sum(stats.values()),'unmapped',len(unmapped),flush=True)
+  manifest.append({'shop':shop,'integrity':integrity,'sources':source_objects,'rows':dict(stats),'reference_counts':dict(reference_counts),'unmapped':len(unmapped),'unmapped_objects':unmapped,'issues':dict(issues)});print(shop,'sources',source_objects,'rows',sum(stats.values()),'unmapped',len(unmapped),flush=True)
  (out/'mapping_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
  print('DONE',out)
 if __name__=='__main__':main()
