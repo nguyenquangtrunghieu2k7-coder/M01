@@ -111,7 +111,8 @@ def create_db(path):
  CREATE TABLE validation_issues(issue_uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,source_row INTEGER,source_cell TEXT,code TEXT,severity TEXT,detail TEXT);
  CREATE TABLE source_lineage(lineage_uid TEXT PRIMARY KEY,entity_table TEXT,entity_uid TEXT,shop_id TEXT,source_id TEXT,source_row INTEGER,source_cell TEXT,transform_id TEXT,raw_value TEXT,version_id TEXT);
  CREATE TABLE business_catalog(catalog_key TEXT PRIMARY KEY,catalog_json TEXT);
- CREATE TABLE source_reference_records(reference_uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,source_object TEXT,source_row INTEGER,reference_key TEXT,raw_json TEXT,version_id TEXT);''')
+ CREATE TABLE source_reference_records(reference_uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,source_object TEXT,source_row INTEGER,reference_key TEXT,raw_json TEXT,version_id TEXT);
+ CREATE TABLE duplicate_source_rows(duplicate_uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,duplicate_source_row INTEGER,retained_source_row INTEGER,entity_table TEXT,version_id TEXT);''')
  for t in TABLES:c.execute(f'''CREATE TABLE {t}(uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,source_row INTEGER,source_business_id TEXT,event_date TEXT,amount TEXT,quantity TEXT,unit TEXT,document_uid TEXT,display_name TEXT,status_raw TEXT,attributes_json TEXT,version_id TEXT)''')
  c.execute('CREATE INDEX idx_lineage_entity ON source_lineage(entity_table,entity_uid)');return c
 
@@ -126,7 +127,7 @@ def main():
    if not args.overwrite:raise SystemExit(f'REFUSING TO OVERWRITE EXISTING DATABASE {target}. Use a new --output directory, or explicitly --overwrite after backup.')
    target.unlink()
   c=create_db(target);version=uid(shop,'mapping_candidate_v1');c.execute('INSERT INTO dataset_versions VALUES(?,?,?,?,?,?)',(version,shop,'0.3.0-candidate','evidence-candidate',dt.datetime.now(dt.timezone.utc).isoformat(),'PROVISIONAL_NOT_FOR_PRODUCTION'))
-  stats=Counter();reference_counts=Counter();unmapped=[];issues=Counter();source_objects=0;grouped=set();total_files=0
+  stats=Counter();reference_counts=Counter();duplicate_counts=Counter();unmapped=[];issues=Counter();source_objects=0;grouped=set();total_files=0
   # dev_006 order lines carry a product SKU and an order ID, not a product name
   # or transaction date. Both can be resolved against explicit, unique POS keys.
   pos_product_names={};pos_order_fields={}
@@ -151,6 +152,10 @@ def main():
    grain=EXPLICIT.get(shop,{}).get(selector)
    if not grain:
     unmapped.append(p.name+'::'+obj);return
+   # Scoped only to dev006 order lines: rulebook section 8 says identical
+   # physical rows of ONE order are export duplicates, not extra sales.
+   # Preserve all rows in staging; suppress duplicates only in the mart.
+   seen_pos_lines={}
    it=iter(iterator);first=[]
    for _ in range(5):
     try:first.append(next(it))
@@ -184,6 +189,22 @@ def main():
     # Repeated headers are source records, but must not enter any mart.
     if sum(str(raw.get(h,''))==h for h in headers if h)>2:
      problem(src,rn,'REPEATED_HEADER','header repeated within body');continue
+    if shop=='dev_006' and obj=='chi_tiet_don' and grain=='order_lines':
+     # Exact equality of ALL physical columns, including shop and invoice.
+     # Do not deduplicate merely by (order, position, product): other fields
+     # may differ and such rows must remain separate transactions.
+     fingerprint=json.dumps(raw_preserved,ensure_ascii=False,sort_keys=True,default=str)
+     original_row=seen_pos_lines.get(fingerprint)
+     if original_row is not None:
+      c.execute('INSERT INTO duplicate_source_rows VALUES(?,?,?,?,?,?,?)',(
+       uid(src,rn,'exact_duplicate'),shop,src,rn,original_row,'order_lines',version))
+      c.execute('UPDATE staging_rows SET parsed_json=? WHERE source_id=? AND source_row=?',(
+       json.dumps({'classification':'EXACT_EXPORT_DUPLICATE',
+                   'retained_source_row':original_row,
+                   'count_in_mart':False},ensure_ascii=False),src,rn))
+      duplicate_counts['order_lines']+=1
+      continue
+     seen_pos_lines[fingerprint]=rn
     # Non-transactional reference objects are retained without inventing mart semantics.
     # A product's pharmaceutical attributes are not themselves saleable products.
     if grain=='__reference__':
@@ -276,9 +297,9 @@ def main():
       for rn,row in enumerate(source.execute('SELECT * FROM "'+obj+'"'),2):yield rn,row
      consume(p,obj,get_rows(),'sqlite')
     source.close()
-  catalog={'shop_id':shop,'version_id':version,'validation_status':'PROVISIONAL_NOT_FOR_PRODUCTION','contract_version':'0.3.0-candidate','source_files_seen':total_files,'source_objects_processed':source_objects,'row_counts':dict(stats),'reference_counts':dict(reference_counts),'issue_counts':dict(issues),'unmapped_objects':unmapped,'capabilities':{t:stats[t]>0 for t in TABLES},'approval_status':'CANDIDATE_NOT_APPROVED','notes':'Candidate mappings, no inferred document totals. Raw data in staging, source provenance in lineage. No official KPI approval.'}
+  catalog={'shop_id':shop,'version_id':version,'validation_status':'PROVISIONAL_NOT_FOR_PRODUCTION','contract_version':'0.3.0-candidate','source_files_seen':total_files,'source_objects_processed':source_objects,'row_counts':dict(stats),'reference_counts':dict(reference_counts),'duplicate_row_counts':dict(duplicate_counts),'issue_counts':dict(issues),'unmapped_objects':unmapped,'capabilities':{t:stats[t]>0 for t in TABLES},'approval_status':'CANDIDATE_NOT_APPROVED','notes':'Candidate mappings, no inferred document totals. Raw data in staging, source provenance in lineage. No official KPI approval.'}
   c.execute('INSERT INTO business_catalog VALUES(?,?)',(shop,json.dumps(catalog,ensure_ascii=False)));c.commit();integrity=c.execute('PRAGMA integrity_check').fetchone()[0];c.close()
-  manifest.append({'shop':shop,'integrity':integrity,'sources':source_objects,'rows':dict(stats),'reference_counts':dict(reference_counts),'unmapped':len(unmapped),'unmapped_objects':unmapped,'issues':dict(issues)});print(shop,'sources',source_objects,'rows',sum(stats.values()),'unmapped',len(unmapped),flush=True)
+  manifest.append({'shop':shop,'integrity':integrity,'sources':source_objects,'rows':dict(stats),'reference_counts':dict(reference_counts),'duplicate_row_counts':dict(duplicate_counts),'unmapped':len(unmapped),'unmapped_objects':unmapped,'issues':dict(issues)});print(shop,'sources',source_objects,'rows',sum(stats.values()),'unmapped',len(unmapped),flush=True)
  (out/'mapping_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
  print('DONE',out)
 if __name__=='__main__':main()
