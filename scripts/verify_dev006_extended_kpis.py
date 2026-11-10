@@ -21,8 +21,26 @@ PERIODS=(('2025-04-01','2025-04-30'),('2026-01-01','2026-01-31'),
          ('2025-04-01','2026-08-08'))
 
 def money(value):
+    """Independently parse POS units; tr is decimal millions, k thousands."""
+    import re
     if isinstance(value,int):return value
-    return int(str(value).replace('đ','').replace('₫','').replace('.','').replace(' ',''))
+    if value is None:raise ValueError('Missing source receipt')
+    s=str(value).strip().lower().replace(' ','').replace('₫','').replace('đ','')
+    unit=1
+    if s.endswith('tr'):
+        s=s[:-2];unit=1000000
+    elif s.endswith('k'):
+        s=s[:-1];unit=1000
+    if unit!=1:
+        if re.fullmatch(r'[+-]?\d+(?:[.,]\d+)?',s) is None:
+            raise ValueError('Invalid scaled POS money: '+repr(value))
+        amount=Decimal(s.replace(',','.'))*unit
+    else:
+        if re.fullmatch(r'[+-]?(?:\d+|\d{1,3}(?:\.\d{3})+)',s) is None:
+            raise ValueError('Invalid POS money: '+repr(value))
+        amount=Decimal(s.replace('.',''))
+    if amount!=amount.to_integral_value():raise ValueError('Fractional VND: '+repr(value))
+    return int(amount)
 
 def round2(num,den):
     return float((Decimal(100)*Decimal(num)/Decimal(den)).quantize(Decimal('.01'),rounding=ROUND_HALF_UP)) if den else 0.0
