@@ -33,6 +33,7 @@ def main():
  source=pathlib.Path(a.source);dest=pathlib.Path(a.candidate)
  con=sqlite3.connect('file:'+str((dest/'dev_008.sqlite').resolve())+'?mode=ro',uri=True);con.row_factory=sqlite3.Row
  reference={};line_sums=collections.defaultdict(int);line_counts=collections.Counter();linekeys=collections.Counter()
+ seen_lines={};expected_duplicates={};duplicate_amount_sum=0
  mismatch=collections.Counter();samples=collections.defaultdict(list);errors=[]
  def flag(kind,detail):
   mismatch[kind]+=1
@@ -57,11 +58,21 @@ def main():
      if first[field]!=raw_header[field]:flag('SOURCE_INCONSISTENT_HEADER',{'order_id':oid,'field':field,'file':file,'row':rowno})
     for field in ('Tổng tiền hàng','Giảm giá HĐ','Phi ship','Tong tien'):
      if firstv[field]!=values[field]:flag('SOURCE_INCONSISTENT_ORDER_MONEY',{'order_id':oid,'field':field,'file':file,'row':rowno})
-   line_counts[oid]+=1;linekeys[(oid,str(r.get('Số dòng') or '').strip())]+=1
+   linekeys[(oid,str(r.get('Số dòng') or '').strip())]+=1
+   signature=tuple((field,str(value if value is not None else '').strip()) for field,value in sorted(r.items()))
+   if signature in seen_lines:
+    retained_file,retained_row=seen_lines[signature]
+    expected_duplicates[(file,rowno)]=(retained_file,retained_row,oid,values['Thành tiền'])
+    if values['Thành tiền'] is not None:duplicate_amount_sum+=values['Thành tiền']
+    continue
+   seen_lines[signature]=(file,rowno)
+   line_counts[oid]+=1
    if values['Thành tiền'] is not None:line_sums[oid]+=values['Thành tiền']
  order_rows={r['order_id']:r for r in con.execute('SELECT * FROM orders')}
+ db_duplicates={(r['duplicate_source_file'],r['duplicate_source_row']):(r['retained_source_file'],r['retained_source_row'],r['order_id'],r['duplicate_line_amount']) for r in con.execute('SELECT * FROM dedup_lineage')}
+ if db_duplicates!=expected_duplicates:flag('DEDUP_LINEAGE_PARITY',{'source_count':len(expected_duplicates),'mart_count':len(db_duplicates),'source_total':duplicate_amount_sum,'mart_total':sum((v[3] or 0) for v in db_duplicates.values())})
  db_lines={r[0]:(r[1],r[2]) for r in con.execute('SELECT order_id,COUNT(*),SUM(line_total) FROM order_lines GROUP BY order_id')}
- check={'source_orders':len(reference),'db_orders':len(order_rows),'source_lines':sum(line_counts.values()),'db_lines':sum(r[0] for r in db_lines.values()),'source_summary_rows':sum(invalid.values()),'source_repeated_line_key_copies':sum(n-1 for n in linekeys.values() if n>1)}
+ check={'source_orders':len(reference),'db_orders':len(order_rows),'source_lines':sum(line_counts.values()),'db_lines':sum(r[0] for r in db_lines.values()),'source_summary_rows':sum(invalid.values()),'source_repeated_line_key_copies':sum(n-1 for n in linekeys.values() if n>1),'source_exact_duplicate_copies':len(expected_duplicates),'source_duplicate_amount':duplicate_amount_sum,'db_duplicate_copies':len(db_duplicates)}
  for oid,(header,v,file,rowno) in reference.items():
   db=order_rows.get(oid)
   if db is None:
@@ -89,8 +100,8 @@ def main():
  if check['source_lines']!=check['db_lines']:flag('LINE_COUNT_MISMATCH',check)
  if check['foreign_key_violations'] or check['sqlite_integrity']!='ok':flag('DB_INTEGRITY_ERROR',check)
  con.close()
- structural_errors={'SOURCE_INCONSISTENT_HEADER','SOURCE_INCONSISTENT_ORDER_MONEY','MISSING_DB_ORDER','DB_ORDER_AMOUNT_PARITY','DB_ORDER_ATTRIBUTE_PARITY','DB_LINE_PARITY','SOURCE_ROW_COVERAGE','OTHER_SOURCE_ROW_COVERAGE','ORDER_COUNT_MISMATCH','LINE_COUNT_MISMATCH','DB_INTEGRITY_ERROR'}
- report={'shop':'dev_008','approval':'CANDIDATE_NOT_APPROVED','source_to_mart_pass':not any(mismatch[k] for k in structural_errors) and not money_unparsed,'financial_equation_pass':not mismatch['SOURCE_ITEMS_VS_LINES'] and not mismatch['SOURCE_ORDER_PAYABLE_EQUATION'],'counts':check,'unparseable_money':dict(money_unparsed),'mismatch_counts':dict(mismatch),'mismatch_samples':dict(samples),'notes':['Order-header values are counted once per Bill','Repeated order-line keys are preserved pending source-level duplicate proof','Debt note parsing and KPI status semantics not yet approved']}
+ structural_errors={'DEDUP_LINEAGE_PARITY','SOURCE_INCONSISTENT_HEADER','SOURCE_INCONSISTENT_ORDER_MONEY','MISSING_DB_ORDER','DB_ORDER_AMOUNT_PARITY','DB_ORDER_ATTRIBUTE_PARITY','DB_LINE_PARITY','SOURCE_ROW_COVERAGE','OTHER_SOURCE_ROW_COVERAGE','ORDER_COUNT_MISMATCH','LINE_COUNT_MISMATCH','DB_INTEGRITY_ERROR'}
+ report={'shop':'dev_008','approval':'CANDIDATE_NOT_APPROVED','source_to_mart_pass':not any(mismatch[k] for k in structural_errors) and not money_unparsed,'financial_equation_pass':not mismatch['SOURCE_ITEMS_VS_LINES'] and not mismatch['SOURCE_ORDER_PAYABLE_EQUATION'],'counts':check,'unparseable_money':dict(money_unparsed),'mismatch_counts':dict(mismatch),'mismatch_samples':dict(samples),'notes':['Order-header values are counted once per Bill','Exact source-row duplicates are excluded from mart and preserved in source_rows/excluded_records/dedup_lineage','Debt note parsing and KPI status semantics not yet approved']}
  target=dest/'financial_qa_report.json';target.write_text(json.dumps(report,ensure_ascii=False,indent=2))
  print(json.dumps({'report':str(target),'source_to_mart_pass':report['source_to_mart_pass'],'financial_equation_pass':report['financial_equation_pass'],'counts':check,'unparseable_money':dict(money_unparsed),'mismatch_counts':dict(mismatch),'samples':{k:v[:3] for k,v in samples.items()}},ensure_ascii=False,indent=2))
 if __name__=='__main__':main()
