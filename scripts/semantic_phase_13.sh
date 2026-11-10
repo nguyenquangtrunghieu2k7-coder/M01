@@ -30,9 +30,9 @@ python3 scripts/triage_13_semantics.py \
 # Resolve source paths with a case statement instead.
 source_for_shop() {
   case "$1" in
-    001) printf '%s\\n' "$DATA_ROOT/public_test/data/dev_001/So_chi_tiet_ban_hang.xlsx" ;;
-    009) printf '%s\\n' "$DATA_ROOT/public_test/data/dev_009/danh_sach_hoa_don.csv" ;;
-    012) printf '%s\\n' "$DATA_ROOT/public_test/data/dev_012/SoSuaXe.xlsx" ;;
+    001) printf '%s\n' "$DATA_ROOT/public_test/data/dev_001/So_chi_tiet_ban_hang.xlsx" ;;
+    009) printf '%s\n' "$DATA_ROOT/public_test/data/dev_009/danh_sach_hoa_don.csv" ;;
+    012) printf '%s\n' "$DATA_ROOT/public_test/data/dev_012/SoSuaXe.xlsx" ;;
     *) echo "Unsupported shop: $1" >&2; return 2 ;;
   esac
 }
