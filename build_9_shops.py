@@ -223,7 +223,13 @@ def main():
     parsed={'business_id':str(bid).strip() if bid is not None else None,'event_date':date(dt_val,p.stem+' '+obj),'amount':money(amount_val),'quantity':str(qty) if qty is not None else None,'unit':str(unit) if unit is not None else None,'display_name':str(name) if name is not None else None}
     c.execute('UPDATE staging_rows SET parsed_json=? WHERE staging_uid=?',
      (json.dumps(parsed,ensure_ascii=False,default=str),uid(src,rn)))
-    ent=uid(shop,grain_row,src,rn);doc=uid(shop,'document',src,bid) if bid is not None else None
+    ent=uid(shop,grain_row,src,rn)
+    # POS uses a shop-scoped invoice key shared by order headers and details.
+    # Source-object scoped UIDs would prevent M03 from joining them.
+    if shop=='dev_006' and grain_row in ('orders','order_lines') and bid is not None:
+     doc=uid(shop,'document',str(raw.get('IDCuaHang')),str(bid))
+    else:
+     doc=uid(shop,'document',src,bid) if bid is not None else None
     attrs={'source_grain':grain_row,'source_object':obj,'source_values':raw,'date_unparsed':str(dt_val) if dt_val is not None and not parsed['event_date'] else None,'amount_unparsed':str(amount_val) if amount_val is not None and parsed['amount'] is None else None}
     if grain_row=='order_lines' and shop=='dev_006':
      attrs.update({'item_sku':resolved_sku,'product_lookup':'san_pham(IDCuaHang,MaHangHoa)','order_lookup':'don_hang(IDCuaHang,MaHoaDon)','derived_name':bool(resolved_sku),'derived_order_fields':bool(resolved_order_key in pos_order_fields)})
