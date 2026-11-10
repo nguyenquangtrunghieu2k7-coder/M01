@@ -1,0 +1,72 @@
+[
+  {
+    "archive": "M01_9_shops_mapping_candidate.zip",
+    "location": "Downloads",
+    "status": "checked",
+    "imported": 2,
+    "skipped": 0
+  },
+  {
+    "archive": "M01_data_processing_pilot_and_D5_evidence_v2.zip",
+    "location": "Downloads",
+    "status": "checked",
+    "imported": 19,
+    "skipped": 51
+  },
+  {
+    "archive": "M01_source_mapping_audit.zip",
+    "location": "Downloads",
+    "status": "checked",
+    "imported": 1,
+    "skipped": 0
+  },
+  {
+    "archive": "M01_to_M03_integration_toolkit.zip",
+    "location": "Downloads",
+    "status": "checked",
+    "imported": 23,
+    "skipped": 51
+  },
+  {
+    "archive": "M01_BUSINESSDATASET_14_SHOPS.zip",
+    "location": "Desktop",
+    "status": "checked",
+    "imported": 1,
+    "skipped": 41
+  },
+  {
+    "archive": "M01_BUSINESSDATASET_FINAL.zip",
+    "location": "Desktop",
+    "status": "checked",
+    "imported": 1,
+    "skipped": 44
+  },
+  {
+    "archive": "M01_BUSINESSDATASET_LOCAL.zip",
+    "location": "Desktop",
+    "status": "checked",
+    "imported": 1,
+    "skipped": 73
+  },
+  {
+    "archive": "M01_CODE_REVIEW.zip",
+    "location": "Desktop",
+    "status": "checked",
+    "imported": 15,
+    "skipped": 42
+  },
+  {
+    "archive": "M01_M03_HANDOFF.zip",
+    "location": "Desktop",
+    "status": "checked",
+    "imported": 1,
+    "skipped": 31
+  },
+  {
+    "archive": "M01_SOURCE_AUDIT.zip",
+    "location": "Desktop",
+    "status": "checked",
+    "imported": 0,
+    "skipped": 3
+  }
+]
