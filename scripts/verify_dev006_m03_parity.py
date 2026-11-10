@@ -1,152 +1,182 @@
 #!/usr/bin/env python3
-"""Read-only dev_006 source-to-mart parity, using stable SOURCE ROW provenance.
+"""Rulebook-grounded, read-only POS-to-mart acceptance for dev_006.
 
-Do not deduplicate by (order, position, SKU): source can contain repeated
-business values representing different physical order lines. Rebuilding the
-mart is not needed to run this audit.
+Identical physical rows in one order are export duplicates per rulebook §8.
+Keep every source row in staging; only the first instance enters order_lines.
+Never deduplicate by SKU/position alone. Verifies total, monthly, as-of-date
+and non-overlapping interval KPI parity, with precise row provenance.
 """
 import argparse
 import json
 import sqlite3
 from collections import Counter, defaultdict
-from decimal import Decimal, InvalidOperation
+from datetime import date, timedelta
+from decimal import Decimal
 from pathlib import Path
 
 ELIGIBLE = {'completed', 'shipping'}
+CHECKPOINTS = ('2025-04-01','2025-04-30','2025-07-01',
+               '2025-12-31','2026-01-01','2026-07-31','2026-08-08')
 
-def audit(pos_path, mart_path):
-    with sqlite3.connect(f'file:{Path(pos_path).resolve()}?mode=ro', uri=True) as source, \
-         sqlite3.connect(f'file:{Path(mart_path).resolve()}?mode=ro', uri=True) as mart:
-        sample_failures=[]
-        failures=Counter()
-        def error(code, detail):
-            failures[code]+=1
-            if len(sample_failures)<30:
-                sample_failures.append(f'{code}: {detail}')
-        raw_count=source.execute('SELECT COUNT(*) FROM chi_tiet_don').fetchone()[0]
-        mart_count=mart.execute("SELECT COUNT(*) FROM order_lines WHERE shop_id='dev_006'").fetchone()[0]
-        if raw_count!=mart_count:
-            error('line_count_mismatch',f'raw={raw_count}, mart={mart_count}')
-        source_header_count=source.execute('SELECT COUNT(*) FROM don_hang').fetchone()[0]
-        header_by_doc={}
-        for doc,bid,status in mart.execute(
-            "SELECT document_uid,source_business_id,status_raw FROM orders WHERE shop_id='dev_006'"):
-            if not doc or doc in header_by_doc:
-                error('duplicate_or_missing_header_uid',repr(doc))
-            header_by_doc[doc]=(str(bid),status)
-        if len(header_by_doc)!=source_header_count:
-            error('header_count_mismatch',f'raw={source_header_count},mart={len(header_by_doc)}')
+def verify(pos_path, mart_path):
+    src=sqlite3.connect(f'file:{Path(pos_path).resolve()}?mode=ro',uri=True)
+    mart=sqlite3.connect(f'file:{Path(mart_path).resolve()}?mode=ro',uri=True)
+    errors=Counter()
+    samples=[]
+    def fail(reason, value):
+        errors[reason]+=1
+        if len(samples)<30:samples.append(f'{reason}: {value}')
+    try:
+        source_cols=[r[1] for r in src.execute('PRAGMA table_info(chi_tiet_don)')]
+        if not source_cols:raise ValueError('Missing POS order-line columns')
+        line_srcs=mart.execute("""SELECT source_id FROM raw_sources
+            WHERE shop_id='dev_006' AND source_object='chi_tiet_don'""").fetchall()
+        if len(line_srcs)!=1:fail('line_source_registration',str(line_srcs))
+        source_id=line_srcs[0][0] if len(line_srcs)==1 else None
+        headers={}
+        for doc,bid,status,day in mart.execute("""SELECT document_uid,
+            source_business_id,status_raw,event_date FROM orders
+            WHERE shop_id='dev_006'"""):
+            if not doc or doc in headers:fail('header_document_uid',repr(doc))
+            headers[doc]=(str(bid),status,day)
+        source_headers=src.execute('SELECT COUNT(*) FROM don_hang').fetchone()[0]
+        if len(headers)!=source_headers:fail('order_count',(source_headers,len(headers)))
 
-        sources=mart.execute("""
-            SELECT source_id FROM raw_sources
-            WHERE shop_id='dev_006' AND source_object='chi_tiet_don'
-        """).fetchall()
-        if len(sources)!=1:
-            error('raw_source_registration',f'expected one chi_tiet_don source, found {len(sources)}')
-        line_source_id=sources[0][0] if len(sources)==1 else None
-
-        raw_agg=defaultdict(lambda:[0,0])
-        mart_agg=defaultdict(lambda:[0,0])
-        raw_status=Counter();mart_status=Counter()
-        # The M01 SQLite importer numbers header as row 1 and records 2..N+1.
-        # Its SELECT * iteration follows SQLite's rowid scan of this POS table.
-        # Use that identical physical ordering and include EVERY source line.
+        # Read raw lines in same physical iteration order as SQLite builder.
+        raw_values=src.execute('SELECT * FROM chi_tiet_don ORDER BY rowid')
+        header_lookup={(str(s),str(o)):(status,str(when)[:10]) for s,o,status,when
+                       in src.execute('SELECT IDCuaHang,MaHoaDon,TinhTrang,ThoiGianLap FROM don_hang')}
         expected={}
-        raw_sql="""SELECT l.IDCuaHang,l.MaHoaDon,l.SoThuTu,l.MaHangHoa,
-                          l.TriGia,d.TinhTrang,substr(d.ThoiGianLap,1,10)
-                   FROM chi_tiet_don l LEFT JOIN don_hang d
-                   ON d.IDCuaHang=l.IDCuaHang AND d.MaHoaDon=l.MaHoaDon
-                   ORDER BY l.rowid"""
-        for rownum, (sid,oid,seq,sku,amount,status,event_date) in enumerate(
-                source.execute(raw_sql),start=2):
-            expected[rownum]=(str(sid),str(oid),str(seq),str(sku),str(amount),status,event_date)
+        duplicates={}
+        seen={}
+        raw_status=Counter()
+        raw_month=defaultdict(lambda:[0,0])
+        for rn,values in enumerate(raw_values,start=2):
+            fingerprint=json.dumps({f'{i}:{name or "col"}':value for i,(name,value)
+                 in enumerate(zip(source_cols,values))},ensure_ascii=False,
+                 sort_keys=True,default=str)
+            if fingerprint in seen:
+                duplicates[rn]=seen[fingerprint]
+                continue
+            seen[fingerprint]=rn
+            row=dict(zip(source_cols,values))
+            status_day=header_lookup.get((str(row['IDCuaHang']),str(row['MaHoaDon'])))
+            if status_day is None:
+                fail('source_missing_order',rn);continue
+            status,day=status_day
+            expected[rn]=(row,status,day)
             raw_status[status]+=1
             if status in ELIGIBLE:
-                month=event_date[:7] if event_date else 'MISSING_DATE'
-                raw_agg[month][0]+=1
-                try:raw_agg[month][1]+=int(Decimal(str(amount)))
-                except (InvalidOperation,TypeError,ValueError):
-                    error('raw_amount_invalid',f'source_row={rownum}')
-            elif status is None:
-                error('missing_order_join',f'source_row={rownum}')
+                if not day:fail('source_missing_date',rn)
+                else:
+                    amount=int(Decimal(str(row['TriGia'])))
+                    month=day[:7]
+                    raw_month[month][0]+=1;raw_month[month][1]+=amount
 
+        count_src=src.execute('SELECT COUNT(*) FROM chi_tiet_don').fetchone()[0]
+        staging_count=mart.execute("""SELECT COUNT(*) FROM staging_rows
+            WHERE source_id=?""",(source_id,)).fetchone()[0] if source_id else None
+        if staging_count!=count_src:fail('staging_row_count',(staging_count,count_src))
+        mart_count=mart.execute("""SELECT COUNT(*) FROM order_lines
+            WHERE shop_id='dev_006'""").fetchone()[0]
+        if mart_count!=len(expected):fail('mart_count',(mart_count,len(expected)))
+        annotated=mart.execute("""SELECT duplicate_source_row,retained_source_row
+            FROM duplicate_source_rows WHERE shop_id='dev_006'
+            AND entity_table='order_lines'""").fetchall()
+        if len(annotated)!=len(duplicates) or dict(annotated)!=duplicates:
+            fail('duplicate_audit_mismatch',(len(annotated),len(duplicates)))
+        for rn,retained in duplicates.items():
+            rec=mart.execute("""SELECT parsed_json FROM staging_rows
+                WHERE source_id=? AND source_row=?""",(source_id,rn)).fetchone()
+            if not rec:fail('missing_duplicate_staging',rn);continue
+            parsed=json.loads(rec[0])
+            if parsed.get('classification')!='EXACT_EXPORT_DUPLICATE' or parsed.get('retained_source_row')!=retained:
+                fail('duplicate_staging_flag',rn)
+
+        mart_month=defaultdict(lambda:[0,0])
+        mart_status=Counter()
         observed=set()
-        mart_sql="""SELECT source_id,source_row,document_uid,source_business_id,
-                           event_date,amount,status_raw,attributes_json
-                    FROM order_lines WHERE shop_id='dev_006'"""
-        for source_id,source_row,doc,bid,date,amount,status,attrs in mart.execute(mart_sql):
-            if line_source_id is not None and source_id!=line_source_id:
-                error('unexpected_line_source_id',f'source_row={source_row}')
-            if source_row in observed:
-                error('duplicate_source_row',f'source_row={source_row}')
-                continue
-            observed.add(source_row)
-            record=expected.get(source_row)
-            if record is None:
-                error('unmatched_source_row',f'source_row={source_row}')
-                continue
-            sid,oid,seq,sku,raw_amount,raw_status_value,raw_date=record
-            try:
-                src=(json.loads(attrs).get('source_values') or {})
-            except (TypeError,ValueError):
-                error('invalid_attributes_json',f'source_row={source_row}')
-                continue
-            if (str(src.get('IDCuaHang')),str(bid),str(src.get('SoThuTu')),
-                    str(src.get('MaHangHoa'))) != (sid,oid,seq,sku):
-                error('source_fields_mismatch',f'source_row={source_row}')
-            try:
-                amount_matches=Decimal(str(amount))==Decimal(raw_amount)
-            except (InvalidOperation,TypeError,ValueError):
-                amount_matches=False
-            if not amount_matches or status!=raw_status_value or date!=raw_date:
-                error('value_status_date_mismatch',f'source_row={source_row}')
-            if header_by_doc.get(doc)!=(oid,status):
-                error('header_join_mismatch',f'source_row={source_row}')
+        for source_id_row,rn,doc,bid,day,amount,status,attrs in mart.execute("""
+            SELECT source_id,source_row,document_uid,source_business_id,
+                   event_date,amount,status_raw,attributes_json FROM order_lines
+            WHERE shop_id='dev_006'"""):
+            if source_id_row!=source_id:fail('wrong_source_id',rn)
+            if rn in observed:fail('duplicate_mart_source_row',rn);continue
+            observed.add(rn)
+            wanted=expected.get(rn)
+            if wanted is None:fail('unexpected_mart_source_row',rn);continue
+            row,exp_status,exp_day=wanted
+            try:attributes=json.loads(attrs)
+            except (ValueError,TypeError):fail('bad_attributes_json',rn);continue
+            actual=attributes.get('source_values') or {}
+            for col in source_cols:
+                if actual.get(col)!=row[col]:
+                    fail('altered_source_field',(rn,col))
+            if str(bid)!=str(row['MaHoaDon']) or day!=exp_day or status!=exp_status or Decimal(str(amount))!=Decimal(str(row['TriGia'])):
+                fail('incorrect_line_mapping',rn)
+            if headers.get(doc)!=(str(bid),status,day):
+                fail('order_join',rn)
             mart_status[status]+=1
             if status in ELIGIBLE:
-                month=date[:7] if date else 'MISSING_DATE'
-                mart_agg[month][0]+=1
-                try:mart_agg[month][1]+=int(Decimal(str(amount)))
-                except (InvalidOperation,TypeError,ValueError):
-                    error('mart_amount_invalid',f'source_row={source_row}')
-        if len(observed)!=len(expected):
-            error('source_row_coverage_mismatch',f'raw={len(expected)}, mart={len(observed)}')
-        if raw_status!=mart_status:
-            error('status_distribution_mismatch',f'raw={dict(raw_status)}, mart={dict(mart_status)}')
-        if dict(raw_agg)!=dict(mart_agg):
-            for month in sorted(set(raw_agg)|set(mart_agg)):
-                if raw_agg[month]!=mart_agg[month]:
-                    error('monthly_revenue_mismatch',f'{month}: raw={raw_agg[month]},mart={mart_agg[month]}')
-        if 'MISSING_DATE' in raw_agg or 'MISSING_DATE' in mart_agg:
-            error('eligible_line_missing_date','eligible line without valid date')
-        return {
-            'shop_id':'dev_006','source_order_lines':raw_count,'mart_order_lines':mart_count,
-            'source_order_headers':source_header_count,'mart_order_headers':len(header_by_doc),
-            'source_eligible_revenue_vnd':sum(v[1] for v in raw_agg.values()),
-            'mart_eligible_revenue_vnd':sum(v[1] for v in mart_agg.values()),
-            'revenue_by_month':{k:{'source_line_count':raw_agg[k][0],
-                        'mart_line_count':mart_agg[k][0],
-                        'source_revenue_vnd':raw_agg[k][1],
-                        'mart_revenue_vnd':mart_agg[k][1]}
-                        for k in sorted(set(raw_agg)|set(mart_agg))},
-            'parity_method':'source_id + source_row, preserving repeated order-line values',
-            'source_vs_mart_parity_pass':not failures,
-            'failure_count':sum(failures.values()),'failure_breakdown':dict(failures),
-            'sample_failures':sample_failures,'production_approved':False,
-            'note':'Source-to-mart parity is not full M03 question/as_of_date acceptance.'
+                if not day:fail('mart_missing_date',rn)
+                else:
+                    mart_month[day[:7]][0]+=1
+                    mart_month[day[:7]][1]+=int(Decimal(str(amount)))
+        if observed!=set(expected):
+            fail('unmatched_source_row_count',(len(observed),len(expected)))
+        if mart_status!=raw_status:fail('status_mismatch',(dict(mart_status),dict(raw_status)))
+        for month in sorted(set(raw_month)|set(mart_month)):
+            if raw_month[month]!=mart_month[month]:
+                fail('monthly_revenue',f'{month}: {raw_month[month]} vs {mart_month[month]}')
+        # As-of queries are cumulative, but only on the source-observed date
+        # range. Dates outside this range are not automatically zero.
+        checkpoints={}
+        for cutoff in CHECKPOINTS:
+            raw_sum=sum(int(row['TriGia']) for row,status,day in expected.values()
+                        if status in ELIGIBLE and day<=cutoff)
+            mart_sum=mart.execute("""SELECT COALESCE(SUM(CAST(amount AS INTEGER)),0)
+                FROM order_lines WHERE shop_id='dev_006'
+                AND status_raw IN ('completed','shipping')
+                AND event_date<=?""",(cutoff,)).fetchone()[0]
+            checkpoints[cutoff]={'raw_vnd':raw_sum,'mart_vnd':mart_sum}
+            if raw_sum!=mart_sum:fail('as_of_mismatch',cutoff)
+        raw_total=sum(v[1] for v in raw_month.values())
+        mart_total=sum(v[1] for v in mart_month.values())
+        catalog_row=mart.execute('SELECT catalog_json FROM business_catalog').fetchall()
+        if len(catalog_row)!=1:fail('catalog_count',len(catalog_row))
+        else:
+            catalog=json.loads(catalog_row[0][0])
+            if catalog.get('row_counts',{}).get('order_lines')!=mart_count:
+                fail('catalog_row_count',mart_count)
+            if catalog.get('duplicate_row_counts',{}).get('order_lines')!=len(duplicates):
+                fail('catalog_duplicate_count',len(duplicates))
+        result={
+            'shop_id':'dev_006','source_line_count':count_src,
+            'staged_line_count':staging_count,'exact_duplicate_copies':len(duplicates),
+            'expected_mart_lines':len(expected),'mart_lines':mart_count,
+            'source_revenue_after_dedup_vnd':raw_total,
+            'mart_revenue_after_dedup_vnd':mart_total,
+            'as_of_checkpoints':checkpoints,
+            'monthly_revenue_vnd':{month:values[1] for month,values in sorted(mart_month.items())},
+            'acceptance_pass':not errors,'failure_count':sum(errors.values()),
+            'failure_breakdown':dict(errors),'sample_failures':samples,
+            'production_approved':False,
+            'note':'This is dev006 M01-to-M03 SQL parity, NOT approval of all M03 question families.'
         }
+        return result
+    finally:
+        src.close();mart.close()
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument('--pos',required=True,type=Path)
-    p.add_argument('--db',required=True,type=Path)
-    p.add_argument('--report',required=True,type=Path)
-    args=p.parse_args()
-    result=audit(args.pos,args.db)
-    args.report.parent.mkdir(parents=True,exist_ok=True)
-    args.report.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-    print(json.dumps({k:v for k,v in result.items() if k!='revenue_by_month'},ensure_ascii=False,indent=2))
-    if not result['source_vs_mart_parity_pass']:
-        raise SystemExit(2)
+    p.add_argument('--pos',type=Path,required=True)
+    p.add_argument('--db',type=Path,required=True)
+    p.add_argument('--report',type=Path,required=True)
+    a=p.parse_args()
+    result=verify(a.pos,a.db)
+    a.report.parent.mkdir(parents=True,exist_ok=True)
+    a.report.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps({k:v for k,v in result.items() if k not in ('monthly_revenue_vnd','as_of_checkpoints')},ensure_ascii=False,indent=2))
+    if not result['acceptance_pass']:raise SystemExit(2)
 
 if __name__=='__main__':main()
