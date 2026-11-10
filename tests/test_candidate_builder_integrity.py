@@ -47,10 +47,10 @@ class CandidateBuilderIntegrityTests(unittest.TestCase):
             shop.mkdir(parents=True)
             with sqlite3.connect(shop / 'pos.sqlite') as db:
                 db.execute('CREATE TABLE san_pham(IDCuaHang TEXT, MaHangHoa TEXT, TenGoi TEXT)')
-                db.execute('CREATE TABLE don_hang(IDCuaHang TEXT, MaHoaDon TEXT, ThoiGianLap TEXT, TinhTrang TEXT)')
+                db.execute('CREATE TABLE don_hang(IDCuaHang TEXT, MaHoaDon TEXT, NgayLap TEXT, ThoiGianLap TEXT, TinhTrang TEXT)')
                 db.execute('CREATE TABLE chi_tiet_don(IDCuaHang TEXT, MaHoaDon TEXT, SoThuTu INTEGER, MaHangHoa TEXT, SL INTEGER, TriGia INTEGER)')
                 db.execute("INSERT INTO san_pham VALUES('dev_006','SP01','Thuốc A')")
-                db.execute("INSERT INTO don_hang VALUES('dev_006','ORD01','2025-04-01 06:00:39','completed')")
+                db.execute("INSERT INTO don_hang VALUES('dev_006','ORD01','45748','2025-04-01 06:00:39','completed')")
                 db.execute("INSERT INTO chi_tiet_don VALUES('dev_006','ORD01',1,'SP01',2,5000)")
                 db.execute("INSERT INTO chi_tiet_don VALUES('dev_006','ORD01',2,'SP99',1,2000)")
                 db.commit()
@@ -61,10 +61,110 @@ class CandidateBuilderIntegrityTests(unittest.TestCase):
                 self.assertEqual(row[:5],('ORD01','Thuốc A','2025-04-01','completed','5000'))
                 import json
                 self.assertEqual(json.loads(row[5])['item_sku'],'SP01')
+                # Header and line must resolve to the same business document.
+                header_doc=db.execute("SELECT document_uid FROM orders WHERE source_business_id='ORD01'").fetchone()[0]
+                line_doc=db.execute("SELECT document_uid FROM order_lines WHERE source_business_id='ORD01'").fetchone()[0]
+                self.assertEqual(header_doc,line_doc)
+                self.assertEqual(db.execute("SELECT event_date FROM orders WHERE source_business_id='ORD01'").fetchone()[0], '2025-04-01')
+                self.assertEqual(db.execute("SELECT event_date FROM order_lines WHERE source_business_id='ORD01' LIMIT 1").fetchone()[0], '2025-04-01')
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM order_lines').fetchone()[0],1)
                 self.assertEqual(db.execute("SELECT COUNT(*) FROM validation_issues WHERE code='MISSING_ITEM'").fetchone()[0],1)
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM staging_rows').fetchone()[0],4)
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM staging_rows s WHERE s.issue_count!=(SELECT COUNT(*) FROM validation_issues v WHERE v.source_id=s.source_id AND v.source_row=s.source_row)').fetchone()[0],0)
+
+    def test_dev006_reference_objects_are_preserved_with_lineage(self):
+        import json
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shop = root / 'public_test' / 'data' / 'dev_006'
+            shop.mkdir(parents=True)
+            with sqlite3.connect(shop / 'pos.sqlite') as db:
+                db.execute('CREATE TABLE san_pham(IDCuaHang TEXT,MaHangHoa TEXT,TenGoi TEXT)')
+                db.execute('CREATE TABLE don_hang(IDCuaHang TEXT,MaHoaDon TEXT,ThoiGianLap TEXT,TinhTrang TEXT)')
+                for obj, key in [('chi_nhanh','MaChiNhanh'), ('nha_cung_cap','MaNhaCungCap'),
+                                 ('nhan_vien','MaNhanVien'), ('thong_tin_thuoc','MaHangHoa')]:
+                    db.execute(f'CREATE TABLE {obj}(IDCuaHang TEXT,{key} TEXT,TenGoi TEXT)')
+                    db.execute(f"INSERT INTO {obj} VALUES('dev_006','K1','Test')")
+                db.commit()
+            out = root / 'output'
+            subprocess.run([sys.executable,str(SCRIPT),'--data-root',str(root),
+                            '--output',str(out),'--shops','dev_006'],
+                           check=True,capture_output=True,text=True)
+            with sqlite3.connect(out/'dev_006.sqlite') as db:
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM source_reference_records').fetchone()[0],4)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM staging_rows').fetchone()[0],4)
+                # Both empty POS lookup tables are registered as raw sources too.
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM raw_sources').fetchone()[0],6)
+                self.assertEqual(db.execute("SELECT COUNT(*) FROM source_lineage WHERE entity_table='source_reference_records'").fetchone()[0],4)
+                cat=json.loads(db.execute('SELECT catalog_json FROM business_catalog').fetchone()[0])
+                self.assertEqual(cat['unmapped_objects'],[])
+                self.assertEqual(sum(cat['reference_counts'].values()),4)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM validation_issues').fetchone()[0],0)
+
+    def test_dev006_exact_duplicate_is_staged_not_counted_twice(self):
+        """Rulebook §8: exact duplicate copies are not two sales."""
+        import json
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            shop=root/'public_test'/'data'/'dev_006'
+            shop.mkdir(parents=True)
+            with sqlite3.connect(shop/'pos.sqlite') as db:
+                db.execute('CREATE TABLE san_pham(IDCuaHang TEXT,MaHangHoa TEXT,TenGoi TEXT)')
+                db.execute('CREATE TABLE don_hang(IDCuaHang TEXT,MaHoaDon TEXT,ThoiGianLap TEXT,TinhTrang TEXT)')
+                db.execute('CREATE TABLE chi_tiet_don(IDCuaHang TEXT,MaHoaDon TEXT,SoThuTu INTEGER,MaHangHoa TEXT,SL INTEGER,TriGia INTEGER)')
+                db.execute("INSERT INTO san_pham VALUES('dev_006','SP01','Thuốc A')")
+                db.execute("INSERT INTO don_hang VALUES('dev_006','ORD01','2025-04-01 06:00:39','completed')")
+                db.executemany("INSERT INTO chi_tiet_don VALUES('dev_006','ORD01',1,'SP01',1,5000)",[(),()])
+                db.commit()
+            out=root/'output'
+            subprocess.run([sys.executable,str(SCRIPT),'--data-root',str(root),
+                            '--output',str(out),'--shops','dev_006'],
+                           check=True,capture_output=True,text=True)
+            parity=Path(__file__).resolve().parents[1]/'scripts'/'verify_dev006_m03_parity.py'
+            report=root/'parity.json'
+            result=subprocess.run([sys.executable,str(parity),'--pos',str(shop/'pos.sqlite'),
+                                   '--db',str(out/'dev_006.sqlite'),'--report',str(report)],
+                                  capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+            data=json.loads(report.read_text())
+            self.assertTrue(data['acceptance_pass'],data['sample_failures'])
+            self.assertEqual(data['source_line_count'],2)
+            self.assertEqual(data['mart_revenue_after_dedup_vnd'],5000)
+            self.assertEqual(data['exact_duplicate_copies'],1)
+            self.assertEqual(data['mart_lines'],1)
+            self.assertEqual(data['staged_line_count'],2)
+
+    def test_dev006_same_business_key_with_distinct_values_is_not_deduplicated(self):
+        """Different amounts for one invoice/position/SKU remain distinct sales."""
+        import json
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            shop=root/'public_test'/'data'/'dev_006'
+            shop.mkdir(parents=True)
+            with sqlite3.connect(shop/'pos.sqlite') as db:
+                db.execute('CREATE TABLE san_pham(IDCuaHang TEXT,MaHangHoa TEXT,TenGoi TEXT)')
+                db.execute('CREATE TABLE don_hang(IDCuaHang TEXT,MaHoaDon TEXT,ThoiGianLap TEXT,TinhTrang TEXT)')
+                db.execute('CREATE TABLE chi_tiet_don(IDCuaHang TEXT,MaHoaDon TEXT,SoThuTu INTEGER,MaHangHoa TEXT,SL INTEGER,TriGia INTEGER)')
+                db.execute("INSERT INTO san_pham VALUES('dev_006','SP01','Thuốc A')")
+                db.execute("INSERT INTO don_hang VALUES('dev_006','ORD01','2025-04-01 06:00:39','completed')")
+                db.execute("INSERT INTO chi_tiet_don VALUES('dev_006','ORD01',1,'SP01',1,5000)")
+                db.execute("INSERT INTO chi_tiet_don VALUES('dev_006','ORD01',1,'SP01',2,10000)")
+                db.commit()
+            out=root/'output'
+            subprocess.run([sys.executable,str(SCRIPT),'--data-root',str(root),
+                            '--output',str(out),'--shops','dev_006'],
+                           check=True,capture_output=True,text=True)
+            parity=Path(__file__).resolve().parents[1]/'scripts'/'verify_dev006_m03_parity.py'
+            report=root/'parity.json'
+            result=subprocess.run([sys.executable,str(parity),'--pos',str(shop/'pos.sqlite'),
+                                   '--db',str(out/'dev_006.sqlite'),'--report',str(report)],
+                                  capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+            data=json.loads(report.read_text())
+            self.assertTrue(data['acceptance_pass'],data['sample_failures'])
+            self.assertEqual(data['exact_duplicate_copies'],0)
+            self.assertEqual(data['mart_lines'],2)
+            self.assertEqual(data['mart_revenue_after_dedup_vnd'],15000)
 
 if __name__ == '__main__':
     unittest.main()

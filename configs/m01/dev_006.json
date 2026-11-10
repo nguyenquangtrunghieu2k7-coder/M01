@@ -1,8 +1,231 @@
 {
   "shop_id": "dev_006",
-  "contract_version": "0.2.0",
-  "approval_status": "BLOCKED_NO_APPROVED_MAPPING",
-  "sources": [],
+  "contract_version": "0.3.0-candidate",
+  "approval_status": "CANDIDATE_NOT_APPROVED",
+  "mapping_status": "SOURCE_COVERAGE_VERIFIED_FINANCIAL_RULEBOOK_AUDITED",
+  "family": "pharmacy_pos",
+  "sources": [
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "chi_nhanh",
+      "grain": "source_reference_records",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "nha_cung_cap",
+      "grain": "source_reference_records",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "nhan_vien",
+      "grain": "source_reference_records",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "thong_tin_thuoc",
+      "grain": "source_reference_records",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "don_hang",
+      "grain": "orders",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "chi_tiet_don",
+      "grain": "order_lines",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "thanh_toan",
+      "grain": "payments",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "san_pham",
+      "grain": "products",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "khach_hang",
+      "grain": "customers",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "phieu_nhap",
+      "grain": "purchase_receipts",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "chi_tiet_nhap",
+      "grain": "purchase_lines",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "tra_hang",
+      "grain": "returns",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "the_kho",
+      "grain": "inventory_events",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "lich_su_gia",
+      "grain": "price_history",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "lo_hang",
+      "grain": "lots",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "chi_tiet_don_lo",
+      "grain": "lot_allocations",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    },
+    {
+      "path": "public_test/data/dev_006/pos.sqlite",
+      "format": "sqlite",
+      "object": "don_vi_sp",
+      "grain": "unit_conversions",
+      "evidence": {
+        "source": "public_test/data/dev_006/README.md",
+        "builder": "build_9_shops.py",
+        "coverage": "scripts/verify_dev006_coverage.py",
+        "approval": "review_required"
+      }
+    }
+  ],
   "lineage_policy": "cell and source row",
-  "safety_policy": "fail_closed"
+  "safety_policy": "fail_closed",
+  "revenue_semantics": {
+    "basis": "SUM(order_lines.amount) after line discount",
+    "source_field": "chi_tiet_don.TriGia",
+    "include_status": [
+      "completed",
+      "shipping"
+    ],
+    "exclude_status": [
+      "cancelled",
+      "returned"
+    ],
+    "payment_is_revenue": false,
+    "as_of_date_required": true,
+    "evidence": "public_test/rulebook.md section 1"
+  },
+  "approval_note": "17/17 physical sources imported in local QA; do not mark APPROVED until normalized KPI parity and M03 integration pass."
 }

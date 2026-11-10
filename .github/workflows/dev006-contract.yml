@@ -1,0 +1,62 @@
+name: dev006 M01-to-M03 contract
+on:
+  push:
+    branches:
+      - fix/m03-businessdata-contract-20261110
+  pull_request:
+    paths:
+      - 'build_9_shops.py'
+      - 'scripts/family_inventory.py'
+      - 'scripts/rollout_13_families.py'
+      - 'scripts/dev009_semantic_release.py'
+      - 'scripts/triage_13_semantics.py'
+      - 'tests/test_dev009_semantic_release.py'
+      - 'scripts/dev012_semantic_release.py'
+      - 'scripts/dev001_semantic_release.py'
+      - 'tests/test_dev001_semantic_release.py'
+      - 'scripts/m03_family_kpi_router.py'
+      - 'tests/test_m03_family_kpi_router.py'
+      - 'tests/test_dev012_semantic_release.py'
+      - 'scripts/semantic_phase_13.sh'
+      - 'tests/test_13_family_rollout.py'
+      - 'scripts/m03_consumer.py'
+      - 'scripts/verify_dev006_*.py'
+      - 'scripts/release_dev006_businessdata.py'
+      - 'tests/test_candidate_builder_integrity.py'
+      - 'tests/test_m03_contract_gate.py'
+      - 'tests/test_dev006_extended_kpis.py'
+      - 'scripts/dev006_extended_kpis.py'
+      - 'scripts/verify_dev006_extended_kpis.py'
+      - 'scripts/release_dev006_extended.py'
+      - 'scripts/extend_dev006.sh'
+      - '.github/workflows/dev006-contract.yml'
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install openpyxl
+      - name: Validate local release shell syntax
+        run: bash -n scripts/build_and_release_dev006.sh scripts/extend_dev006.sh scripts/semantic_phase_13.sh
+      - name: Compile dev006 acceptance and release scripts
+        run: python -m py_compile scripts/release_dev006_businessdata.py scripts/verify_dev006_m03_parity.py scripts/m03_consumer.py scripts/dev006_extended_kpis.py scripts/verify_dev006_extended_kpis.py scripts/release_dev006_extended.py scripts/family_inventory.py scripts/rollout_13_families.py scripts/dev009_semantic_release.py scripts/triage_13_semantics.py scripts/dev012_semantic_release.py scripts/dev001_semantic_release.py scripts/m03_family_kpi_router.py build_9_shops.py
+      - name: Candidate builder and exact dedup regressions
+        run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_candidate_builder_integrity.py' -v
+      - name: M03 production gate contract
+        run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_m03_contract_gate.py' -v
+      - name: Pharmacy family extended KPI synthetic regression
+        run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_dev006_extended_kpis.py' -v
+      - name: All remaining shop-family contract regressions
+        run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_13_family_rollout.py' -v
+      - name: dev009 source-backed semantic revenue and release regressions
+        run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_dev009_semantic_release.py' -v
+      - name: dev012 motorcycle repair and warranty source regressions
+        run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_dev012_semantic_release.py' -v
+      - name: dev001 single-file retail source semantics and production regression
+        run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_dev001_semantic_release.py' -v
+      - name: Unified production M03 family KPI router and approval gate
+        run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_m03_family_kpi_router.py' -v
