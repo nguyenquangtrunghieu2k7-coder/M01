@@ -61,6 +61,10 @@ class CandidateBuilderIntegrityTests(unittest.TestCase):
                 self.assertEqual(row[:5],('ORD01','Thuốc A','2025-04-01','completed','5000'))
                 import json
                 self.assertEqual(json.loads(row[5])['item_sku'],'SP01')
+                # Header and line must resolve to the same business document.
+                header_doc=db.execute("SELECT document_uid FROM orders WHERE source_business_id='ORD01'").fetchone()[0]
+                line_doc=db.execute("SELECT document_uid FROM order_lines WHERE source_business_id='ORD01'").fetchone()[0]
+                self.assertEqual(header_doc,line_doc)
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM order_lines').fetchone()[0],1)
                 self.assertEqual(db.execute("SELECT COUNT(*) FROM validation_issues WHERE code='MISSING_ITEM'").fetchone()[0],1)
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM staging_rows').fetchone()[0],4)
