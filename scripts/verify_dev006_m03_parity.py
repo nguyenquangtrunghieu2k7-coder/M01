@@ -148,7 +148,7 @@ def verify(pos_path, mart_path):
             catalog=json.loads(catalog_row[0][0])
             if catalog.get('row_counts',{}).get('order_lines')!=mart_count:
                 fail('catalog_row_count',mart_count)
-            if catalog.get('duplicate_row_counts',{}).get('order_lines')!=len(duplicates):
+            if catalog.get('duplicate_row_counts',{}).get('order_lines',0)!=len(duplicates):
                 fail('catalog_duplicate_count',len(duplicates))
         result={
             'shop_id':'dev_006','source_line_count':count_src,
