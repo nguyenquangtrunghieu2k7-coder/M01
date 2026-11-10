@@ -6,6 +6,9 @@ on:
   pull_request:
     paths:
       - 'build_9_shops.py'
+      - 'scripts/family_inventory.py'
+      - 'scripts/rollout_13_families.py'
+      - 'tests/test_13_family_rollout.py'
       - 'scripts/m03_consumer.py'
       - 'scripts/verify_dev006_*.py'
       - 'scripts/release_dev006_businessdata.py'
@@ -30,10 +33,12 @@ jobs:
       - name: Validate local release shell syntax
         run: bash -n scripts/build_and_release_dev006.sh scripts/extend_dev006.sh
       - name: Compile dev006 acceptance and release scripts
-        run: python -m py_compile scripts/release_dev006_businessdata.py scripts/verify_dev006_m03_parity.py scripts/m03_consumer.py scripts/dev006_extended_kpis.py scripts/verify_dev006_extended_kpis.py scripts/release_dev006_extended.py build_9_shops.py
+        run: python -m py_compile scripts/release_dev006_businessdata.py scripts/verify_dev006_m03_parity.py scripts/m03_consumer.py scripts/dev006_extended_kpis.py scripts/verify_dev006_extended_kpis.py scripts/release_dev006_extended.py scripts/family_inventory.py scripts/rollout_13_families.py build_9_shops.py
       - name: Candidate builder and exact dedup regressions
         run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_candidate_builder_integrity.py' -v
       - name: M03 production gate contract
         run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_m03_contract_gate.py' -v
       - name: Pharmacy family extended KPI synthetic regression
         run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_dev006_extended_kpis.py' -v
+      - name: All remaining shop-family contract regressions
+        run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_13_family_rollout.py' -v
