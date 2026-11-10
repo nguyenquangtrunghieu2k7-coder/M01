@@ -14,7 +14,7 @@ except ImportError:
     from scripts.family_inventory import FAMILIES
 
 REQUIRED=('dataset_versions','business_catalog','raw_sources','staging_rows',
-          'source_lineage','validation_issues','source_reference_records')
+          'source_lineage','validation_issues','source_reference_records','family_native_records')
 MARTS=('orders','order_lines','order_adjustments','products','customers',
        'payments','purchase_receipts','purchase_lines','returns','inventory_events',
        'inventory_snapshots','unit_conversions','price_history','expenses','deliveries',
@@ -48,6 +48,7 @@ def inspect(path,contract):
         staged=c.execute('SELECT COUNT(*) FROM staging_rows').fetchone()[0]
         references=c.execute('SELECT COUNT(*) FROM source_reference_records').fetchone()[0]
         lineage=c.execute('SELECT COUNT(*) FROM source_lineage').fetchone()[0]
+        native=c.execute('SELECT COUNT(*) FROM family_native_records').fetchone()[0]
         orphan=c.execute("""SELECT COUNT(*) FROM staging_rows s
             LEFT JOIN raw_sources r ON s.source_id=r.source_id WHERE r.source_id IS NULL""").fetchone()[0]
         if orphan:failures.append('orphan staging rows: '+str(orphan))
@@ -55,6 +56,19 @@ def inspect(path,contract):
             LEFT JOIN staging_rows s ON r.source_id=s.source_id
             AND r.source_row=s.source_row WHERE s.staging_uid IS NULL""").fetchone()[0]
         if dangling:failures.append('reference rows without staging: '+str(dangling))
+        orphan_native=c.execute('''SELECT COUNT(*) FROM family_native_records f
+          LEFT JOIN staging_rows s ON f.source_id=s.source_id AND f.source_row=s.source_row
+          WHERE s.staging_uid IS NULL''').fetchone()[0]
+        if orphan_native:failures.append('family native rows without staging: '+str(orphan_native))
+        if sum(cat.get('family_native_counts',{}).values())!=native:
+            failures.append('family native role count mismatch')
+        source_roles={(Path(x['path']).name,x['object']):x['candidate_role']
+                      for x in contract['source_manifest']}
+        for src_path,obj,role in c.execute('''SELECT s.source_path,f.source_object,f.family_role
+           FROM family_native_records f JOIN raw_sources s ON f.source_id=s.source_id
+           GROUP BY s.source_path,f.source_object,f.family_role'''):
+            if source_roles.get((Path(src_path).name,obj))!=role:
+                failures.append('family native role mismatch: '+obj)
         bad_lineage=c.execute("""SELECT COUNT(*) FROM source_lineage l
             LEFT JOIN staging_rows s ON l.source_id=s.source_id
             AND l.source_row=s.source_row WHERE s.staging_uid IS NULL""").fetchone()[0]
@@ -76,7 +90,7 @@ def inspect(path,contract):
             failures.append('dataset version approval mismatch')
         return {'shop_id':shop,'family':contract['family'],'source_objects':src_count,
                 'expected_source_objects':len(expected),'staging_rows':staged,
-                'source_reference_records':references,'source_lineage':lineage,
+                'source_reference_records':references,'family_native_records':native,'family_native_role_counts':cat.get('family_native_counts',{}),'source_lineage':lineage,
                 'mart_row_counts':actual,'validation_issues':validation_count,
                 'issue_summary':cat.get('issue_counts',{}),'unmapped_objects':cat.get('unmapped_objects',[]),
                 'structural_pass':not failures,'failures':failures,
