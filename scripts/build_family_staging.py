@@ -16,8 +16,10 @@ from pathlib import Path
 
 try:
     from .family_inventory import FAMILIES, inventory
+    from .family_semantics import validate_contract
 except ImportError:
     from family_inventory import FAMILIES, inventory
+    from family_semantics import validate_contract
 
 try:
     import openpyxl
@@ -109,6 +111,7 @@ def build(shop,root,contracts_dir,output_dir):
         raise ValueError('Wrong family contract')
     if cfg.get('approval_status')!='CANDIDATE_NOT_APPROVED' or cfg.get('official_kpis_approved'):
         raise ValueError('No silent approval or KPI authorization allowed')
+    policy=validate_contract(cfg)
     sources=cfg['source_manifest']
     physical={(p.name,obj,fmt) for p,obj,fmt in inventory(folder)}
     expected={(Path(s['path']).name,s['object'],s['format']) for s in sources}
@@ -132,7 +135,9 @@ def build(shop,root,contracts_dir,output_dir):
             src_path=root/entry['path']
             if not src_path.is_file():
                 raise FileNotFoundError(src_path)
-            src_sha=file_hashes.setdefault(src_path,hash_file(src_path))
+            if src_path not in file_hashes:
+                file_hashes[src_path]=hash_file(src_path)
+            src_sha=file_hashes[src_path]
             src_id=uid(shop,entry['path'],entry['object'],src_sha)
             role=entry['candidate_role']
             count=0;nonblank=0;blanks=0
@@ -172,6 +177,7 @@ def build(shop,root,contracts_dir,output_dir):
             'official_kpis_approved':[],'source_objects_processed':len(sources),
             'physical_rows':physical_rows,'nonblank_staged_rows':all_rows,
             'blank_rows':blank_rows,'source_role_counts':dict(by_role),
+            'family_policy':policy,
             'business_marts_approved':[],
             'notes':'Physical-source staging only; semantic family mapping and KPI parity remain pending. Not an M03 production release.'}
         db.execute('INSERT INTO family_catalog VALUES(?,?)',(shop,json.dumps(catalog,ensure_ascii=False)))
