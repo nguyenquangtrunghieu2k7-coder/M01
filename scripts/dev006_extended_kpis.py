@@ -15,7 +15,9 @@ METRICS = (
     'order_count','cancel_rate','gross_profit_by_order_date',
     'units_sold_base','purchases_by_receipt_date','cash_collected',
     'receivables_as_of','stock_units_as_of','inventory_value_as_of',
-    'prescription_revenue','ingredient_revenue'
+    'prescription_revenue','ingredient_revenue','returns_count',
+    'supplier_purchase_value','stockout_product_count','expiry_lot_count',
+    'expiry_lot_cost_vnd','selling_price_as_of'
 )
 ELIGIBLE = ('completed','shipping')
 
@@ -95,7 +97,8 @@ def calculate(db,cat,metric,*,as_of_date,start_date=None,end_date=None,
     All outcomes are computed against the *deduplicated* M01 mart.
     """
     cut,first,last=_check(db,cat,metric,as_of_date,start_date,end_date)
-    period_metric=metric not in {'receivables_as_of','stock_units_as_of','inventory_value_as_of'}
+    period_metric=metric not in {'receivables_as_of','stock_units_as_of','inventory_value_as_of',
+        'stockout_product_count','expiry_lot_count','expiry_lot_cost_vnd','selling_price_as_of'}
     if period_metric and (first is None or last is None):
         raise ValueError('Period KPI requires start_date and end_date')
     if not period_metric and (start_date is not None or end_date is not None):
@@ -139,12 +142,27 @@ def calculate(db,cat,metric,*,as_of_date,start_date=None,end_date=None,
                 total+=_vnd(raw['TongGiaTriNhap'])
         return total
     if metric=='cash_collected':
+        if payment_method is None:payment_method='cash'
         total=0
         for raw,day in _rows(db,'payments'):
             payment_day=str(raw['NgayGioThu'])[:10]
             if _within(payment_day,first,last):
                 if payment_method is None or raw['PhuongThuc']==payment_method:
                     total+=_receipt(raw['SoTienThu'])
+        return total
+    if metric=='returns_count':
+        count=0
+        for raw,day in _rows(db,'orders'):
+            if _within(day,first,last) and raw.get('TinhTrang')=='returned':
+                count+=1
+        return count
+    if metric=='supplier_purchase_value':
+        if product_id is None:raise ValueError('Pass supplier code as product_id for this metric')
+        total=0
+        for raw,day in _rows(db,'purchase_receipts'):
+            if _within(day,first,last) and raw.get('TinhTrang') not in ('cancelled','canceled'):
+                if str(raw.get('MaNhaCungCap'))==str(product_id):
+                    total+=_vnd(raw['TongGiaTriNhap'])
         return total
     if metric=='receivables_as_of':
         settled={}
@@ -184,4 +202,68 @@ def calculate(db,cat,metric,*,as_of_date,start_date=None,end_date=None,
         if any(sku not in costs for sku in last_by_sku):
             raise UnanswerableKPI('Inventory missing product base cost')
         return sum(qty*costs[sku] for sku,(_,qty) in last_by_sku.items() if qty>0)
+    if metric=='stockout_product_count':
+        last_stock={}
+        for raw,day in _rows(db,'inventory_events'):
+            t=str(raw.get('NgayGioPhatSinh') or '')
+            if t[:10]>cut.isoformat():continue
+            sku=str(raw['MaHangHoa'])
+            key=(t,str(raw['MaGiaoDichKho']))
+            if sku not in last_stock or key>last_stock[sku][0]:
+                last_stock[sku]=(key,_vnd(raw['TonCuoi']))
+        if not last_stock:raise UnanswerableKPI('No stock snapshots by as_of_date')
+        return sum(qty==0 for _,qty in last_stock.values())
+    if metric=='selling_price_as_of':
+        if product_id is None:raise ValueError('selling_price_as_of requires product_id')
+        selected=None
+        for attrs,day in db.execute("""SELECT attributes_json,event_date
+                FROM price_history WHERE shop_id='dev_006'"""):
+            raw=json.loads(attrs)['source_values']
+            if str(raw.get('MaHangHoa'))!=str(product_id):continue
+            effective=str(raw.get('NgayApDung') or day or '')[:10]
+            if effective and effective<=cut.isoformat():
+                if selected is None or effective>=selected[0]:
+                    selected=(effective,_vnd(raw['GiaBanLe']))
+        if selected is None:raise UnanswerableKPI('No documented price at as_of_date')
+        return selected[1]
+    if metric in {'expiry_lot_count','expiry_lot_cost_vnd'}:
+        if not isinstance(product_id,int) or product_id<0:
+            raise ValueError('Expiry metrics require nonnegative days_ahead in product_id')
+        horizon=cut+timedelta(days=product_id)
+        orders={}
+        for raw,day in _rows(db,'orders'):
+            orders[str(raw['MaHoaDon'])]=str(raw['ThoiGianLap'])[:10]
+        returns={}
+        for attrs,_ in db.execute("""SELECT attributes_json,event_date
+                FROM returns WHERE shop_id='dev_006'"""):
+            raw=json.loads(attrs)['source_values']
+            oid=str(raw['MaHoaDon']);return_day=str(raw['NgayGioTra'])[:10]
+            if oid not in returns or return_day<returns[oid]:
+                returns[oid]=return_day
+        lot_use={}
+        for attrs,_ in db.execute("""SELECT attributes_json,event_date
+                FROM lot_allocations WHERE shop_id='dev_006'"""):
+            raw=json.loads(attrs)['source_values'];lot=str(raw['MaLo'])
+            purchased=orders.get(str(raw['MaHoaDon']))
+            if purchased is None:raise UnanswerableKPI('Missing order for lot allocation')
+            if purchased<=cut.isoformat():
+                lot_use[lot]=lot_use.get(lot,0)+_vnd(raw['SLQuyDoi'])
+            returned=returns.get(str(raw['MaHoaDon']))
+            if returned is not None and returned<=cut.isoformat():
+                lot_use[lot]=lot_use.get(lot,0)-_vnd(raw['SLTraQuyDoi'])
+        receipt_dates={}
+        for raw,day in _rows(db,'purchase_receipts'):
+            receipt_dates[str(raw['MaPhieuNhap'])]=day
+        count=0;money=0
+        for attrs,_ in db.execute("""SELECT attributes_json,event_date
+                FROM lots WHERE shop_id='dev_006'"""):
+            raw=json.loads(attrs)['source_values']
+            receive=receipt_dates.get(str(raw['MaPhieuNhap']))
+            if receive is None:raise UnanswerableKPI('Missing receipt date for lot')
+            expiry=date.fromisoformat(str(raw['HanSuDung'])[:10])
+            if receive<=cut.isoformat() and cut<=expiry<=horizon:
+                qty=_vnd(raw['SLNhapQuyDoi'])-lot_use.get(str(raw['MaLo']),0)
+                if qty>0:
+                    count+=1;money+=qty*_vnd(raw['DonGiaNhap'])
+        return count if metric=='expiry_lot_count' else money
     raise UnanswerableKPI('Metric implementation is not available')
