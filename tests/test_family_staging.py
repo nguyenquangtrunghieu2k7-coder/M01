@@ -84,6 +84,24 @@ class FamilyStagingTests(unittest.TestCase):
             self.assertNotIn('order_lines',report['source_role_counts'])
             self.assertEqual(report['staged_nonblank_rows'],6)
 
+    def test_family_contracts_forbid_false_business_grains(self):
+        from scripts.family_semantics import POLICIES,validate_contract
+        self.assertEqual(len(POLICIES),13)
+        self.assertIn('fabricate_order_lines',POLICIES['dev_009']['forbid'])
+        self.assertIn('turn_visit_text_into_priced_order_lines',POLICIES['dev_012']['forbid'])
+        self.assertIn('subtract_trade_in_from_revenue',POLICIES['dev_014']['forbid'])
+        with self.assertRaises(ValueError):
+            validate_contract({'shop_id':'dev_009',
+                               'approval_status':'CANDIDATE_NOT_APPROVED',
+                               'official_kpis_approved':[],
+                               'source_manifest':[{'candidate_role':'orders'},
+                                                  {'candidate_role':'order_lines'}]})
+        with self.assertRaises(ValueError):
+            validate_contract({'shop_id':'dev_012',
+                               'approval_status':'APPROVED',
+                               'official_kpis_approved':[],
+                               'source_manifest':[{'candidate_role':'service_visits'}]})
+
     def test_all_shops_have_distinct_family_identity(self):
         from scripts.family_inventory import FAMILIES
         self.assertEqual(len(FAMILIES),13)
