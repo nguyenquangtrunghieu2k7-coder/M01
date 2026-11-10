@@ -5,7 +5,7 @@ These tests do not grant KPI approval. Real-source parity is mandatory.
 import json
 import sqlite3
 import unittest
-from scripts.dev006_extended_kpis import METRICS,calculate
+from scripts.dev006_extended_kpis import METRICS,calculate,_receipt
 from scripts.m03_consumer import NotApprovedForKPI,UnanswerableKPI
 
 class PharmacyKpiTests(unittest.TestCase):
@@ -62,6 +62,17 @@ class PharmacyKpiTests(unittest.TestCase):
         self.assertEqual(self.ask('purchases_by_receipt_date'),1000)
         self.assertEqual(self.ask('supplier_purchase_value',product_id='N1'),1000)
         self.assertEqual(self.ask('returns_count'),1)
+    def test_pos_scaled_money_formats(self):
+        self.assertEqual(_receipt('1,086tr'),1086000)
+        self.assertEqual(_receipt('1.086tr'),1086000)
+        self.assertEqual(_receipt('1tr'),1000000)
+        self.assertEqual(_receipt('1,5tr'),1500000)
+        self.assertEqual(_receipt('51.200đ'),51200)
+        self.assertEqual(_receipt('2,5k'),2500)
+        for invalid in ('1,086', '1.086,5đ', 'abc', '1,2,3tr'):
+            with self.assertRaises(ValueError):
+                _receipt(invalid)
+
     def test_cash_and_debt(self):
         self.assertEqual(self.ask('cash_collected'),200)
         self.assertEqual(self.ask('cash_collected',payment_method='transfer'),500)
