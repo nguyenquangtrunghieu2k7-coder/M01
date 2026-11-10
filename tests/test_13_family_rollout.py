@@ -22,7 +22,7 @@ def build(folder,shop,sources):
                '--shops',shop,'--family-config-dir',str(contracts)],
                capture_output=True,text=True)
     if result.returncode:raise AssertionError(result.stdout+'\n'+result.stderr)
-    return inspect(output/(shop+'.sqlite'),contract),output/(shop+'.sqlite')
+    return inspect(output/(shop+'.sqlite'),contract,folder),output/(shop+'.sqlite')
 
 class FamilyBuilderTests(unittest.TestCase):
     def test_invoice_summary_no_fake_skus(self):
@@ -36,6 +36,8 @@ class FamilyBuilderTests(unittest.TestCase):
             self.assertTrue(qa['structural_pass'],qa['failures'])
             self.assertEqual(qa['mart_row_counts']['order_lines'],0)
             self.assertEqual(qa['mart_row_counts']['orders'],1)
+            self.assertEqual(qa['source_rows_expected'],1)
+            self.assertEqual(qa['source_rows_staged'],1)
             self.assertFalse(qa['production_approved'])
     def test_repair_visits_not_invoiced_sales(self):
         with tempfile.TemporaryDirectory() as td:
