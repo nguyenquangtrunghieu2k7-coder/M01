@@ -35,6 +35,7 @@ def main():
  CREATE TABLE products(product_id TEXT PRIMARY KEY,product_name TEXT,list_price INTEGER,raw_json TEXT,source_row INTEGER UNIQUE);
  CREATE TABLE excluded_records(source_table TEXT,source_row INTEGER,reason TEXT,raw_json TEXT,PRIMARY KEY(source_table,source_row));
  CREATE TABLE mapping_issues(source_table TEXT,source_row INTEGER,issue TEXT,details TEXT);
+ CREATE TABLE dedup_lineage(duplicate_source_row INTEGER PRIMARY KEY,retained_source_row INTEGER NOT NULL,order_id TEXT NOT NULL,duplicate_line_amount INTEGER NOT NULL);
  CREATE INDEX idx_lines_order ON order_lines(order_id);CREATE INDEX idx_payments_order ON payments(order_id);""")
  issues=collections.Counter();excluded=collections.Counter();accepted=collections.Counter()
  def issue(t,i,code,detail=''):
@@ -70,11 +71,20 @@ def main():
   except sqlite3.IntegrityError:exclude('orders',i,r,'duplicate_order_id');issue('orders',i,'DUPLICATE_ORDER_ID',k)
  valid={x[0] for x in con.execute('SELECT order_id FROM orders')}
  products={x[0] for x in con.execute('SELECT product_id FROM products')}
+ seen_lines={}
  for i,r in enumerate(rows['order_lines'],2):
   k=norm(r['Mã bill'])
   if k=='Mã bill':exclude('order_lines',i,r,'repeated_header');continue
   if not ID.fullmatch(k):exclude('order_lines',i,r,'non_transaction_key');continue
   if k not in valid:exclude('order_lines',i,r,'orphan_order');issue('order_lines',i,'ORPHAN_ORDER',k);continue
+  # Exact business-row copies are source artifacts: retain first, trace every excluded copy.
+  # Normalize surrounding whitespace only; do not collapse rows by item/product alone.
+  signature=tuple((field,norm(value)) for field,value in sorted(r.items()))
+  if signature in seen_lines:
+   exclude('order_lines',i,r,'exact_duplicate_line')
+   con.execute('INSERT INTO dedup_lineage VALUES(?,?,?,?)',(i,seen_lines[signature],k,money(r['Cộng'])))
+   continue
+  seen_lines[signature]=i
   product=norm(r['Mã H.hóa'])
   if product not in products:issue('order_lines',i,'UNKNOWN_PRODUCT',product)
   amounts=[money(r[x]) for x in ('Đơn giá (đ)','Cộng','CK')]
@@ -97,7 +107,12 @@ def main():
  def check(k,e,v):checks[k]={'expected':e,'actual':v,'pass':e==v}
  for t in FILES:check(t+'_source_rows',len(rows[t]),con.execute('SELECT COUNT(*) FROM source_rows WHERE source_table=?',(t,)).fetchone()[0])
  check('distinct_orders',len(raw_order),con.execute('SELECT COUNT(*) FROM orders').fetchone()[0])
- check('valid_lines',sum(bool(ID.fullmatch(norm(r['Mã bill']))) and norm(r['Mã bill']) in raw_order for r in rows['order_lines']),con.execute('SELECT COUNT(*) FROM order_lines').fetchone()[0])
+ # Count unique raw row signatures independently of the ingestion index.
+ raw_valid_lines=[r for r in rows['order_lines'] if ID.fullmatch(norm(r['Mã bill'])) and norm(r['Mã bill']) in raw_order]
+ unique_line_signatures={tuple((field,norm(value)) for field,value in sorted(r.items())) for r in raw_valid_lines}
+ check('valid_lines',len(unique_line_signatures),con.execute('SELECT COUNT(*) FROM order_lines').fetchone()[0])
+ check('exact_duplicate_line_copies',len(raw_valid_lines)-len(unique_line_signatures),con.execute('SELECT COUNT(*) FROM dedup_lineage').fetchone()[0])
+ check('retained_duplicate_lineage_integrity',0,con.execute('SELECT COUNT(*) FROM dedup_lineage d LEFT JOIN order_lines l ON l.source_row=d.retained_source_row WHERE l.source_row IS NULL').fetchone()[0])
  check('valid_payments',sum(bool(PAY.fullmatch(norm(r['Mã TT']))) and norm(r['Mã đơn']) in raw_order for r in rows['payments']),con.execute('SELECT COUNT(*) FROM payments').fetchone()[0])
  check('orders_without_lines',len(raw_order-raw_lines),con.execute('SELECT COUNT(*) FROM orders o WHERE NOT EXISTS(SELECT 1 FROM order_lines l WHERE l.order_id=o.order_id)').fetchone()[0])
  check('orders_without_payments',len(raw_order-raw_pay),con.execute('SELECT COUNT(*) FROM orders o WHERE NOT EXISTS(SELECT 1 FROM payments p WHERE p.order_id=o.order_id)').fetchone()[0])
@@ -105,10 +120,10 @@ def main():
  check('payment_fk',0,con.execute('SELECT COUNT(*) FROM payments p LEFT JOIN orders o ON p.order_id=o.order_id WHERE o.order_id IS NULL').fetchone()[0])
  check('integrity','ok',con.execute('PRAGMA integrity_check').fetchone()[0])
  check('source_accountability',sum(map(len,rows.values())),sum(accepted.values())+sum(excluded.values()))
- qa={'approval':'CANDIDATE_NOT_APPROVED','checks':checks,'all_structural_checks_pass':all(x['pass'] for x in checks.values()),'issues':dict(issues),'accepted':dict(accepted),'excluded':{t+':'+reason:n for (t,reason),n in excluded.items()},'financial_qa':'NOT_RUN','warnings':['Money parser requires independently validated reference totals and status semantics before production.']}
+ qa={'approval':'CANDIDATE_NOT_APPROVED','checks':checks,'all_structural_checks_pass':all(x['pass'] for x in checks.values()),'issues':dict(issues),'accepted':dict(accepted),'excluded':{t+':'+reason:n for (t,reason),n in excluded.items()},'financial_qa':'NOT_RUN','warnings':['Status-aware financial QA and source parity must pass before production approval.']}
  (out/'qa_report.json').write_text(json.dumps(qa,ensure_ascii=False,indent=2))
- tables=['orders','order_lines','payments','customers','products','source_rows','excluded_records','mapping_issues']
- contract={'version':'dev010-candidate-v2','approval':'CANDIDATE_NOT_APPROVED','tables':{t:[x[1] for x in con.execute('PRAGMA table_info('+t+')')] for t in tables},'kpis_supported':[]}
+ tables=['orders','order_lines','payments','customers','products','source_rows','excluded_records','mapping_issues','dedup_lineage']
+ contract={'version':'dev010-candidate-v3','approval':'CANDIDATE_NOT_APPROVED','tables':{t:[x[1] for x in con.execute('PRAGMA table_info('+t+')')] for t in tables},'kpis_supported':[]}
  (out/'schema_contract.json').write_text(json.dumps(contract,ensure_ascii=False,indent=2))
  con.close()
  manifest={'version':contract['version'],'approval':'CANDIDATE_NOT_APPROVED','source_sha256':hashes,'sqlite_sha256':hashlib.sha256(db.read_bytes()).hexdigest(),'kpis_supported':[],'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
