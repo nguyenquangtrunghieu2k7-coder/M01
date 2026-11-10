@@ -238,7 +238,18 @@ def main():
       duplicate_counts['order_lines']+=1
       continue
      seen_pos_lines[fingerprint]=rn
-    # Family-specialized objects without approved generic marts stay in a raw\n    # reference layer with provenance; NEVER invent sales or payment semantics.\n    if grain=='__source_only__':\n     refid=uid(src,rn,'source_only')\n     c.execute('INSERT INTO source_reference_records VALUES(?,?,?,?,?,?,?,?)',\n       (refid,shop,src,obj,rn,uid(shop,obj,src,rn),\n        json.dumps(raw_preserved,ensure_ascii=False,default=str),version))\n     reference_counts[obj]+=1\n     c.execute('INSERT OR IGNORE INTO source_lineage VALUES(?,?,?,?,?,?,?,?,?,?)',\n       (uid(refid,'source_lineage'),'source_reference_records',refid,shop,src,rn,None,'source_row',None,version))\n     continue\n    # Non-transactional reference objects are retained without inventing mart semantics.
+    # Family-specialized objects without approved generic marts stay in a raw
+    # reference layer with provenance; NEVER invent sales or payment semantics.
+    if grain=='__source_only__':
+     refid=uid(src,rn,'source_only')
+     c.execute('INSERT INTO source_reference_records VALUES(?,?,?,?,?,?,?,?)',
+       (refid,shop,src,obj,rn,uid(shop,obj,src,rn),
+        json.dumps(raw_preserved,ensure_ascii=False,default=str),version))
+     reference_counts[obj]+=1
+     c.execute('INSERT OR IGNORE INTO source_lineage VALUES(?,?,?,?,?,?,?,?,?,?)',
+       (uid(refid,'source_lineage'),'source_reference_records',refid,shop,src,rn,None,'source_row',None,version))
+     continue
+    # Non-transactional reference objects are retained without inventing mart semantics.
     # A product's pharmaceutical attributes are not themselves saleable products.
     if grain=='__reference__':
      id_col={'chi_nhanh':'MaChiNhanh','nha_cung_cap':'MaNhaCungCap','nhan_vien':'MaNhanVien','thong_tin_thuoc':'MaHangHoa'}.get(obj)
