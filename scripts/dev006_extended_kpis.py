@@ -115,10 +115,6 @@ def calculate(db,cat,metric,*,as_of_date,start_date=None,end_date=None,
             if metric=='ingredient_revenue' and ingredient is None:
                 raise ValueError('ingredient is required, exact catalog compound label')
         total=Decimal(0)
-        for raw,day in _rows(db,'order_lines'):
-            if not _within(day,first,last):continue
-            # status is inherited from the verified header, not line source_values.
-            # Read header's decision through joined document/status field below.
         qry="""SELECT l.attributes_json,l.event_date,l.status_raw
             FROM order_lines l WHERE l.shop_id='dev_006' AND l.event_date>=? AND l.event_date<=?
             AND l.status_raw IN ('completed','shipping')"""
