@@ -93,6 +93,21 @@ def publish(pos,db,out,approver):
         'rulebook':'public_test/rulebook.md',
         'source_readme':'public_test/data/dev_006/README.md',
         'tables':schema},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    config_path=Path(__file__).resolve().parents[1]/'configs'/'m01'/'dev_006.json'
+    if not config_path.is_file():
+        raise ValueError('Missing dev006 source mapping config: '+str(config_path))
+    approved_config=json.loads(config_path.read_text(encoding='utf-8'))
+    if approved_config.get('shop_id')!='dev_006' or len(approved_config.get('sources',[]))!=17:
+        raise ValueError('Dev006 source mapping config must enumerate all 17 physical tables')
+    approved_config.update({
+        'approval_status':'APPROVED',
+        'approved_metrics':['revenue_by_order_date'],
+        'approved_version_id':cat['version_id'],
+        'approval_utc':now,
+        'source_pos_sha256':sha256(pos)
+    })
+    (out/'dev_006_config.json').write_text(
+        json.dumps(approved_config,ensure_ascii=False,indent=2)+'\\n',encoding='utf-8')
     manifest={'shop_id':'dev_006','family':'pharmacy_pos',
        'approval_status':'PRODUCTION_APPROVED','approved_by':approver,
        'approved_at_utc':now,'version_id':cat['version_id'],
@@ -102,7 +117,7 @@ def publish(pos,db,out,approver):
        'duplicate_rows_removed_from_mart':checks['parity']['exact_duplicate_copies'],
        'source_rows_still_staged':checks['parity']['staged_line_count'],
        'm03_reader_smoke_pass':True,
-       'files':['dev_006.sqlite','qa_report.json','schema_contract.json','manifest.json']}
+       'files':['dev_006.sqlite','dev_006_config.json','qa_report.json','schema_contract.json','manifest.json']}
     (out/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return manifest
 
