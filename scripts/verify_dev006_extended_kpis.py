@@ -26,7 +26,7 @@ def money(value):
     if isinstance(value,int):return value
     if value is None:raise ValueError('Missing source receipt')
     s=str(value).strip().lower().replace(' ','').replace('₫','').replace('đ','')
-    embedded=re.fullmatch(r'([+-]?\\d+)tr(\\d{1,3})',s)
+    embedded=re.fullmatch(r'([+-]?\d+)tr(\d{1,3})',s)
     if embedded:
         amount=Decimal(embedded.group(1)+'.'+embedded.group(2))*1000000
         if amount!=amount.to_integral_value():
