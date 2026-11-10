@@ -26,15 +26,21 @@ echo "=== SEMANTIC TRIAGE 13 FAMILY CANDIDATES ==="
 python3 scripts/triage_13_semantics.py \
   --candidates "$CANDIDATE_DIR" --output "$OUTPUT/triage_13.json"
 
-declare -A INPUTS
-INPUTS[001]="$DATA_ROOT/public_test/data/dev_001/So_chi_tiet_ban_hang.xlsx"
-INPUTS[009]="$DATA_ROOT/public_test/data/dev_009/danh_sach_hoa_don.csv"
-INPUTS[012]="$DATA_ROOT/public_test/data/dev_012/SoSuaXe.xlsx"
+# macOS ships Bash 3.2, which does not support associative arrays.
+# Resolve source paths with a case statement instead.
+source_for_shop() {
+  case "$1" in
+    001) printf '%s\\n' "$DATA_ROOT/public_test/data/dev_001/So_chi_tiet_ban_hang.xlsx" ;;
+    009) printf '%s\\n' "$DATA_ROOT/public_test/data/dev_009/danh_sach_hoa_don.csv" ;;
+    012) printf '%s\\n' "$DATA_ROOT/public_test/data/dev_012/SoSuaXe.xlsx" ;;
+    *) echo "Unsupported shop: $1" >&2; return 2 ;;
+  esac
+}
 all_good=1
 for shop in 001 009 012; do
   echo "=== DEV_${shop} INDEPENDENT SOURCE -> MART KPI AUDIT ==="
   if ! python3 "scripts/dev${shop}_semantic_release.py" \
-       --source "${INPUTS[$shop]}" \
+       --source "$(source_for_shop "$shop")" \
        --candidate "$CANDIDATE_DIR/dev_${shop}.sqlite" \
        --output "$OUTPUT/dev_${shop}_release" \
        --report "$OUTPUT/dev${shop}_acceptance.json"; then
@@ -71,7 +77,7 @@ if [[ -n "$APPROVER" ]]; then
   for shop in 001 009 012; do
     echo "=== HUMAN APPROVED dev_${shop} RELEASE (QA-GATED) ==="
     python3 "scripts/dev${shop}_semantic_release.py" \
-      --source "${INPUTS[$shop]}" \
+      --source "$(source_for_shop "$shop")" \
       --candidate "$CANDIDATE_DIR/dev_${shop}.sqlite" \
       --output "$OUTPUT/dev_${shop}_release" \
       --approve --approved-by "$APPROVER"
