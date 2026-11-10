@@ -56,7 +56,7 @@ PYTHONPATH=.:src python3 scripts/release_dev006_businessdata.py \
   --approve --approved-by "Data owner"
 ```
 
-This script re-runs coverage, financial consistency and M03 source/mart acceptance, refusing to publish on failures. On success, it generates `release/dev_006.sqlite`, `qa_report.json`, `schema_contract.json`, `manifest.json`; the database is copied before the production status is changed. The original candidate stays provisional.
+This script re-runs coverage, financial consistency and M03 source/mart acceptance, refusing to publish on failures. On success, it generates `release/dev_006.sqlite`, `dev_006_config.json` (approved 17-source mapping), `qa_report.json`, `schema_contract.json`, `manifest.json`; the database is copied before the production status is changed. The original candidate stays provisional.
 
 The release marks **only `revenue_by_order_date` as an accepted KPI metric**. Other metric families, including stock, debt, pharmacy-specific active ingredients/expiration, and profit, require their own acceptance tests before M03 is permitted to claim them as approved.
 
