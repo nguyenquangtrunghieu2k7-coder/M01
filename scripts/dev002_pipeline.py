@@ -69,7 +69,7 @@ def build(source,out):
    db.execute('INSERT INTO source_rows VALUES(?,?,?)',(f,rn,raw))
    oid=norm(r['order_id'])
    if not re.fullmatch(r'ORD\d+',oid):
-    reason='repeated_header' if oid=='Mã đơn hàng' else 'daily_summary' if 'TỔNG NGÀY' in norm(r['name']) else 'non_transaction'
+    reason='repeated_header' if oid=='Mã đơn hàng' else 'daily_summary' if 'TỔNG NGÀY' in norm(r['customer']) else 'non_transaction'
     excluded[reason]+=1
     db.execute('INSERT INTO excluded_rows VALUES(?,?,?,?)',(f,rn,reason,raw))
     continue
