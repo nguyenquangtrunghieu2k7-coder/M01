@@ -75,7 +75,15 @@ def issue(pos,prior,out,approver):
         if any(x<0 for x in (stock,debt)):
             raise ValueError('Invalid negative stock/debt totals in release smoke')
     finally:reader.close()
-    (out/'dev_006_config.json').write_bytes((prior/'dev_006_config.json').read_bytes())
+    source_config=json.loads((prior/'dev_006_config.json').read_text(encoding='utf-8'))
+    if source_config.get('shop_id')!='dev_006' or len(source_config.get('sources',[]))!=17:
+        raise ValueError('Prior release source mapping config is not 17/17')
+    source_config['approved_metrics']=['revenue_by_order_date',*METRICS]
+    source_config['approval_utc']=now
+    source_config['approved_by']=approver
+    source_config['extended_qa_evidence']='extended_qa_report.json'
+    (out/'dev_006_config.json').write_text(
+        json.dumps(source_config,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     previous_schema=json.loads((prior/'schema_contract.json').read_text(encoding='utf-8'))
     previous_schema['approved_metrics']=['revenue_by_order_date',*METRICS]
     previous_schema['metric_qa_evidence']='extended_qa_report.json'
