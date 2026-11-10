@@ -82,7 +82,11 @@ def _receipt(value):
     if isinstance(value,(int,float,Decimal)):return _vnd(value)
     if not isinstance(value,str):raise ValueError('Missing receipt amount')
     s=value.strip().lower().replace(' ','').replace('₫','').replace('đ','')
-    if s.endswith('tr'):
+    embedded=re.fullmatch(r'([+-]?\\d+)tr(\\d{1,3})',s)
+    if embedded:
+        # POS convention: 2tr638 = 2.638 million VND.
+        amount=Decimal(embedded.group(1)+'.'+embedded.group(2))*1000000
+    elif s.endswith('tr'):
         base=s[:-2]
         if not re.fullmatch(r'[+-]?\d+(?:[.,]\d+)?',base):
             raise ValueError('Ambiguous POS million amount: '+repr(value))
