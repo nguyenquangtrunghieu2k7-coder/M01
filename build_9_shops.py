@@ -117,7 +117,7 @@ def create_db(path):
  c.execute('CREATE INDEX idx_lineage_entity ON source_lineage(entity_table,entity_uid)');return c
 
 def main():
- a=argparse.ArgumentParser();a.add_argument('--data-root',required=True);a.add_argument('--output',required=True);a.add_argument('--shops',nargs='*',default=[f'dev_{i:03d}' for i in SHOPS]);a.add_argument('--overwrite',action='store_true',help='Explicitly replace an existing shop SQLite (destroys imported references; back up first)');args=a.parse_args()
+ a=argparse.ArgumentParser();a.add_argument('--data-root',required=True);a.add_argument('--output',required=True);a.add_argument('--shops',nargs='*',default=[f'dev_{i:03d}' for i in SHOPS]);a.add_argument('--family-config-dir',default=None,help='13-shop family contract directory; enforce explicit physical source grain');a.add_argument('--overwrite',action='store_true',help='Explicitly replace an existing shop SQLite (destroys imported references; back up first)');args=a.parse_args()
  root=Path(args.data_root);out=Path(args.output);out.mkdir(parents=True,exist_ok=True);manifest=[]
  for shop in args.shops:
   folder=root/'public_test'/'data'/shop
@@ -126,6 +126,36 @@ def main():
   if target.exists():
    if not args.overwrite:raise SystemExit(f'REFUSING TO OVERWRITE EXISTING DATABASE {target}. Use a new --output directory, or explicitly --overwrite after backup.')
    target.unlink()
+  # Family role is defined per physical (file, sheet/table), never globally.
+  family_roles=None;family=None
+  if args.family_config_dir:
+   cf=Path(args.family_config_dir)/f'{shop}.json'
+   if not cf.exists():raise SystemExit(f'Missing explicit family contract: {cf}')
+   family=json.loads(cf.read_text(encoding='utf-8'))
+   if family.get('shop_id')!=shop or family.get('approval_status')!='CANDIDATE_NOT_APPROVED':
+    raise SystemExit(f'Unverified or inconsistent family contract: {cf}')
+   family_roles={}
+   for entry in family['source_manifest']:
+    key=(Path(entry['path']).name,entry['object'])
+    if key in family_roles:raise SystemExit(f'Duplicate family source object: {shop} {key}')
+    role=entry['candidate_role']
+    if role=='unclassified':raise SystemExit(f'Unclassified family source: {shop} {key}')
+    family_roles[key]=role
+   # Fail closed when the source folder is modified after contract creation.
+   physical=set()
+   for fp in folder.iterdir():
+    if fp.suffix.lower()=='.csv':physical.add((fp.name,fp.stem))
+    elif fp.suffix.lower()=='.xlsx':
+     import zipfile,xml.etree.ElementTree as ET
+     with zipfile.ZipFile(fp) as z:
+      xml=ET.fromstring(z.read('xl/workbook.xml'))
+      ns={'x':'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+      physical.update((fp.name,x.attrib['name']) for x in xml.findall('x:sheets/x:sheet',ns))
+    elif fp.suffix.lower()=='.sqlite':
+     with sqlite3.connect(f'file:{fp.resolve()}?mode=ro',uri=True) as rawdb:
+      physical.update((fp.name,x[0]) for x in rawdb.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"))
+   if physical!=set(family_roles):
+    raise SystemExit(f'Source contract mismatch for {shop}: missing={sorted(physical-set(family_roles))}, stale={sorted(set(family_roles)-physical)}')
   c=create_db(target);version=uid(shop,'mapping_candidate_v1');c.execute('INSERT INTO dataset_versions VALUES(?,?,?,?,?,?)',(version,shop,'0.3.0-candidate','evidence-candidate',dt.datetime.now(dt.timezone.utc).isoformat(),'PROVISIONAL_NOT_FOR_PRODUCTION'))
   stats=Counter();reference_counts=Counter();duplicate_counts=Counter();unmapped=[];issues=Counter();source_objects=0;grouped=set();total_files=0
   # dev_006 order lines carry a product SKU and an order ID, not a product name
@@ -149,7 +179,10 @@ def main():
   def consume(p,obj,iterator,fmt):
    nonlocal source_objects
    stem=p.stem;selector=stem if stem in EXPLICIT.get(shop,{}) else obj
-   grain=EXPLICIT.get(shop,{}).get(selector)
+   grain=(family_roles[(p.name,obj)] if family_roles is not None else EXPLICIT.get(shop,{}).get(selector))
+   if grain in ('cash_shift','receivable_schedule','receivables','medicine_catalog','staff_reference','promotions'):
+    grain='__source_only__'
+   if grain=='order_lines_with_adjustments':grain='order_lines'
    if not grain:
     unmapped.append(p.name+'::'+obj);return
    # Scoped only to dev006 order lines: rulebook section 8 says identical
@@ -205,7 +238,7 @@ def main():
       duplicate_counts['order_lines']+=1
       continue
      seen_pos_lines[fingerprint]=rn
-    # Non-transactional reference objects are retained without inventing mart semantics.
+    # Family-specialized objects without approved generic marts stay in a raw\n    # reference layer with provenance; NEVER invent sales or payment semantics.\n    if grain=='__source_only__':\n     refid=uid(src,rn,'source_only')\n     c.execute('INSERT INTO source_reference_records VALUES(?,?,?,?,?,?,?,?)',\n       (refid,shop,src,obj,rn,uid(shop,obj,src,rn),\n        json.dumps(raw_preserved,ensure_ascii=False,default=str),version))\n     reference_counts[obj]+=1\n     c.execute('INSERT OR IGNORE INTO source_lineage VALUES(?,?,?,?,?,?,?,?,?,?)',\n       (uid(refid,'source_lineage'),'source_reference_records',refid,shop,src,rn,None,'source_row',None,version))\n     continue\n    # Non-transactional reference objects are retained without inventing mart semantics.
     # A product's pharmaceutical attributes are not themselves saleable products.
     if grain=='__reference__':
      id_col={'chi_nhanh':'MaChiNhanh','nha_cung_cap':'MaNhaCungCap','nhan_vien':'MaNhanVien','thong_tin_thuoc':'MaHangHoa'}.get(obj)
@@ -246,7 +279,7 @@ def main():
      bid,bid_col=pick(raw,['STT'])
     if grain=='order_lines' and shop=='dev_013':
      bid,bid_col=pick(raw,['HĐ'])
-     if str(name or '').strip().lower() in ('voucher','phí ship','phí vận chuyển','giảm giá'):
+     if str(name or '').strip().lower() in ('voucher','phí ship','phí vận chuyển','giảm giá') or str(name or '').strip().lower().startswith('dùng '):
       grain_row='order_adjustments'
      else:grain_row=grain
     else:grain_row=grain
@@ -304,7 +337,7 @@ def main():
       for rn,row in enumerate(source.execute('SELECT * FROM "'+obj+'"'),2):yield rn,row
      consume(p,obj,get_rows(),'sqlite')
     source.close()
-  catalog={'shop_id':shop,'version_id':version,'validation_status':'PROVISIONAL_NOT_FOR_PRODUCTION','contract_version':'0.3.0-candidate','source_files_seen':total_files,'source_objects_processed':source_objects,'row_counts':dict(stats),'reference_counts':dict(reference_counts),'duplicate_row_counts':dict(duplicate_counts),'issue_counts':dict(issues),'unmapped_objects':unmapped,'capabilities':{t:stats[t]>0 for t in TABLES},'approval_status':'CANDIDATE_NOT_APPROVED','notes':'Candidate mappings, no inferred document totals. Raw data in staging, source provenance in lineage. No official KPI approval.'}
+  catalog={'shop_id':shop,'version_id':version,'validation_status':'PROVISIONAL_NOT_FOR_PRODUCTION','contract_version':'0.3.0-candidate','source_files_seen':total_files,'source_objects_processed':source_objects,'row_counts':dict(stats),'reference_counts':dict(reference_counts),'duplicate_row_counts':dict(duplicate_counts),'issue_counts':dict(issues),'unmapped_objects':unmapped,'capabilities':{t:stats[t]>0 for t in TABLES},'approval_status':'CANDIDATE_NOT_APPROVED','family':family.get('family') if family else None,'official_kpis_approved':[],'source_inventory_expected':len(family_roles) if family_roles is not None else None,'notes':'Candidate mappings, no inferred document totals. Raw data in staging, source provenance in lineage. No official KPI approval.'}
   c.execute('INSERT INTO business_catalog VALUES(?,?)',(shop,json.dumps(catalog,ensure_ascii=False)));c.commit();integrity=c.execute('PRAGMA integrity_check').fetchone()[0];c.close()
   manifest.append({'shop':shop,'integrity':integrity,'sources':source_objects,'rows':dict(stats),'reference_counts':dict(reference_counts),'duplicate_row_counts':dict(duplicate_counts),'unmapped':len(unmapped),'unmapped_objects':unmapped,'issues':dict(issues)});print(shop,'sources',source_objects,'rows',sum(stats.values()),'unmapped',len(unmapped),flush=True)
  (out/'mapping_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
