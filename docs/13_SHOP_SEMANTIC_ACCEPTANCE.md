@@ -6,13 +6,16 @@ mistake a successful 146/146 source inventory for business KPI validity.
 ## Current production scopes
 
 - **dev_006**: existing approved revenue + 17 pharmacy KPI metrics, immutable.
+- **dev_001**: source-specific retail workbook adapter; 7 KPI capabilities
+  (revenue, order count, cancellation count/rate, returns count, base-unit
+  quantity and order AOV), gated by full source-vs-mart QA.
 - **dev_009**: source-specific invoice-summary adapter; 4 KPI capabilities
   (`invoice_revenue`, `eligible_order_count`, `cancel_rate`,
   `current_debt_snapshot`), gated by full-source QA and explicit owner release.
 - **dev_012**: motorcycle-repair adapter; 5 KPI capabilities
   (`visit_count`, `service_revenue`, `warranty_visit_count`,
   `warranty_rate`, `average_paid_ticket`), gated likewise.
-- **Other 11 shops**: candidate mapping and source staging only; no newly
+- **Other 10 shops**: candidate mapping and source staging only; no newly
   approved business metrics until family-specific parity tests are supplied.
 
 ## Why not treat every family as retail sales?
@@ -46,11 +49,11 @@ bash scripts/semantic_phase_13.sh
 The script reads existing candidates in
 `outputs/families13_20261110_174922`, checks the structural mart's
 semantic risks for **all 13**, then independently verifies the source
-against candidates for dev_009 and dev_012. It writes
+against candidates for dev_001, dev_009 and dev_012. It writes
 `triage_13.json`, `dev009_acceptance.json` and
 `dev012_acceptance.json`.
 
-If and **only if** both audits pass, explicitly authorize the two scoped
+If and **only if** all three audits pass, explicitly authorize three scoped
 derived releases:
 
 ```bash
@@ -69,6 +72,17 @@ must block approval. Even a successful release for dev009/dev012 is
 not blanket approval for all 111+ question forms or for 11 other shops.
 
 ### Source-specific acceptance invariants
+
+**dev_001:** Actual public source has 90,297 real sale lines and 554 daily
+subtotal lines, across 35,564 unique invoice IDs. Order statuses must
+be normalized from seven observed Vietnamese labels; a returned invoice
+excludes its *entire* multi-line value. `Thành tiền` provides the
+line-grain revenue and `Số lượng quy đổi` gives base-unit sales. An
+unknown status, a conflicting invoice status or date, or unexplained
+invoice duplications must block approval. No invoice headers are invented
+in the original staging candidate; the production derivative has a
+separately audited invoice fact view.
+
 
 **dev_009:** Source CSV has 23,338 rows after the header: 22,490
 unique invoices; 308 exact physical export duplicate invoice copies
