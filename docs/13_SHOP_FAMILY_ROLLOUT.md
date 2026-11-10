@@ -26,7 +26,7 @@ By default the source root is `~/Downloads` containing
   references, promotions and staff. Each row has its exact family role,
   raw values and traceable physical source location. No fabricated KPI.
 - One `family_inventory_audit.json` and one `rollout_13_report.json`
-  showing physical object count, staging count, native row coverage, mart
+  showing physical object count, independent physical-to-staging row-count parity, native row coverage, mart
   row counts, validation issues, orphans and contract mismatches.
 
 Structural acceptance requirements: all 13 source manifests exactly match
