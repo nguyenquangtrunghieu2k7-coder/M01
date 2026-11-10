@@ -77,6 +77,8 @@ class CandidateBuilderIntegrityTests(unittest.TestCase):
             shop = root / 'public_test' / 'data' / 'dev_006'
             shop.mkdir(parents=True)
             with sqlite3.connect(shop / 'pos.sqlite') as db:
+                db.execute('CREATE TABLE san_pham(IDCuaHang TEXT,MaHangHoa TEXT,TenGoi TEXT)')
+                db.execute('CREATE TABLE don_hang(IDCuaHang TEXT,MaHoaDon TEXT,ThoiGianLap TEXT,TinhTrang TEXT)')
                 for obj, key in [('chi_nhanh','MaChiNhanh'), ('nha_cung_cap','MaNhaCungCap'),
                                  ('nhan_vien','MaNhanVien'), ('thong_tin_thuoc','MaHangHoa')]:
                     db.execute(f'CREATE TABLE {obj}(IDCuaHang TEXT,{key} TEXT,TenGoi TEXT)')
@@ -89,7 +91,7 @@ class CandidateBuilderIntegrityTests(unittest.TestCase):
             with sqlite3.connect(out/'dev_006.sqlite') as db:
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM source_reference_records').fetchone()[0],4)
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM staging_rows').fetchone()[0],4)
-                self.assertEqual(db.execute('SELECT COUNT(*) FROM raw_sources').fetchone()[0],4)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM raw_sources').fetchone()[0],6)
                 self.assertEqual(db.execute("SELECT COUNT(*) FROM source_lineage WHERE entity_table='source_reference_records'").fetchone()[0],4)
                 cat=json.loads(db.execute('SELECT catalog_json FROM business_catalog').fetchone()[0])
                 self.assertEqual(cat['unmapped_objects'],[])
