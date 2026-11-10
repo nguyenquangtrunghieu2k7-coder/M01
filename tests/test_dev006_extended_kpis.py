@@ -64,12 +64,14 @@ class PharmacyKpiTests(unittest.TestCase):
         self.assertEqual(self.ask('returns_count'),1)
     def test_pos_scaled_money_formats(self):
         self.assertEqual(_receipt('1,086tr'),1086000)
+        self.assertEqual(_receipt('2tr638'),2638000)
+        self.assertEqual(_receipt('1tr152'),1152000)
         self.assertEqual(_receipt('1.086tr'),1086000)
         self.assertEqual(_receipt('1tr'),1000000)
         self.assertEqual(_receipt('1,5tr'),1500000)
         self.assertEqual(_receipt('51.200đ'),51200)
         self.assertEqual(_receipt('2,5k'),2500)
-        for invalid in ('1,086', '1.086,5đ', 'abc', '1,2,3tr'):
+        for invalid in ('1,086', '1.086,5đ', 'abc', '1,2,3tr', '2tr6389'):
             with self.assertRaises(ValueError):
                 _receipt(invalid)
 
