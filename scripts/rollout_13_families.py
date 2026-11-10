@@ -5,8 +5,9 @@ Read each physical source exactly once, classify using shop-specific manifests,
 preserve unsupported roles as source-only records, and verify structure,
 catalog claims and lineage. Does not mutate dev_006 or earlier releases.
 """
-import argparse,json,sqlite3,subprocess,sys
+import argparse,csv,json,sqlite3,subprocess,sys
 from pathlib import Path
+from openpyxl import load_workbook
 
 try:
     from family_inventory import FAMILIES
@@ -19,7 +20,36 @@ MARTS=('orders','order_lines','order_adjustments','products','customers',
        'payments','purchase_receipts','purchase_lines','returns','inventory_events',
        'inventory_snapshots','unit_conversions','price_history','expenses','deliveries',
        'service_visits','installment_schedules','trade_ins','warranty_visits')
-def inspect(path,contract):
+def physical_nonblank_count(path,fmt,obj,header_row):
+    """Count source nonblank records independently from the M01 importer."""
+    count=0
+    def nonblank(row):
+        return any(value is not None and str(value).strip() for value in row)
+    if fmt=='xlsx':
+        wb=load_workbook(path,read_only=True,data_only=True)
+        try:
+            if obj not in wb.sheetnames:
+                raise ValueError('Missing source sheet '+obj)
+            for rn,row in enumerate(wb[obj].values,start=1):
+                if rn>header_row and nonblank(row):count+=1
+        finally:wb.close()
+    elif fmt=='csv':
+        with path.open(encoding='utf-8-sig',newline='') as stream:
+            sample=stream.read(8192);stream.seek(0)
+            try:dialect=csv.Sniffer().sniff(sample,delimiters=',;\\t')
+            except csv.Error:dialect=csv.excel
+            for rn,row in enumerate(csv.reader(stream,dialect),start=1):
+                if rn>header_row and nonblank(row):count+=1
+    elif fmt=='sqlite':
+        with sqlite3.connect(f'file:{path.resolve()}?mode=ro',uri=True) as raw:
+            escaped=obj.replace('"','""')
+            query='SELECT * FROM "'+escaped+'"'
+            for row in raw.execute(query):
+                if nonblank(row):count+=1
+    else:raise ValueError('Unsupported source format: '+fmt)
+    return count
+
+def inspect(path,contract,source_root):
     shop=contract['shop_id']
     failures=[]
     with sqlite3.connect(f'file:{path.resolve()}?mode=ro',uri=True) as c:
@@ -52,6 +82,24 @@ def inspect(path,contract):
         orphan=c.execute("""SELECT COUNT(*) FROM staging_rows s
             LEFT JOIN raw_sources r ON s.source_id=r.source_id WHERE r.source_id IS NULL""").fetchone()[0]
         if orphan:failures.append('orphan staging rows: '+str(orphan))
+        # Compare per-object record coverage to the physical source itself.
+        expected_staging_total=0
+        staged_total=0
+        for src_path,obj,fmt,header,source_id in c.execute('''SELECT source_path,
+            source_object,source_format,header_row,source_id FROM raw_sources'''):
+            physical_path=Path(src_path)
+            if not physical_path.is_absolute():
+                # Dataset root injected via inspect(... data_root=...), below.
+                physical_path=source_root/physical_path
+            if not physical_path.is_file():
+                failures.append('missing source file for staging check: '+str(physical_path))
+                continue
+            expected_count=physical_nonblank_count(physical_path,fmt,obj,header)
+            observed_count=c.execute('SELECT COUNT(*) FROM staging_rows WHERE source_id=?',(source_id,)).fetchone()[0]
+            expected_staging_total+=expected_count;staged_total+=observed_count
+            if expected_count!=observed_count:
+                failures.append('staging completeness mismatch '+src_path+'::'+obj+
+                                ' physical='+str(expected_count)+' staged='+str(observed_count))
         dangling=c.execute("""SELECT COUNT(*) FROM source_reference_records r
             LEFT JOIN staging_rows s ON r.source_id=s.source_id
             AND r.source_row=s.source_row WHERE s.staging_uid IS NULL""").fetchone()[0]
@@ -90,7 +138,7 @@ def inspect(path,contract):
             failures.append('dataset version approval mismatch')
         return {'shop_id':shop,'family':contract['family'],'source_objects':src_count,
                 'expected_source_objects':len(expected),'staging_rows':staged,
-                'source_reference_records':references,'family_native_records':native,'family_native_role_counts':cat.get('family_native_counts',{}),'source_lineage':lineage,
+                'source_reference_records':references,'source_rows_expected':expected_staging_total,'source_rows_staged':staged_total,'family_native_records':native,'family_native_role_counts':cat.get('family_native_counts',{}),'source_lineage':lineage,
                 'mart_row_counts':actual,'validation_issues':validation_count,
                 'issue_summary':cat.get('issue_counts',{}),'unmapped_objects':cat.get('unmapped_objects',[]),
                 'structural_pass':not failures,'failures':failures,
@@ -122,7 +170,7 @@ def main():
             print(f'BUILD FAILED {shop}: {log}',file=sys.stderr)
             raise SystemExit(2)
         contract=json.loads((cf/(shop+'.json')).read_text(encoding='utf-8'))
-        report=inspect(a.output/(shop+'.sqlite'),contract)
+        report=inspect(a.output/(shop+'.sqlite'),contract,a.data_root)
         results.append(report)
         print(shop,'sources',report.get('source_objects'),
               'staged',report.get('staging_rows'),
