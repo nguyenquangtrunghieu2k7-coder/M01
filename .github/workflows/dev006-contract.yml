@@ -22,6 +22,8 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install openpyxl
+      - name: Compile dev006 acceptance and release scripts
+        run: python -m py_compile scripts/release_dev006_businessdata.py scripts/verify_dev006_m03_parity.py scripts/m03_consumer.py build_9_shops.py
       - name: Candidate builder and exact dedup regressions
         run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_candidate_builder_integrity.py' -v
       - name: M03 production gate contract
