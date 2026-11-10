@@ -13,7 +13,7 @@ def open_business_dataset(db_path, *, allow_provisional_sandbox=False):
         row=c.execute('SELECT catalog_json FROM business_catalog').fetchall()
         if len(row)!=1:raise ValueError('Expected one business catalog')
         catalog=json.loads(row[0][0])
-        if catalog.get('validation_status')!='APPROVED' and not allow_provisional_sandbox:
+        if not allow_provisional_sandbox and (catalog.get('validation_status')!='APPROVED' or catalog.get('approval_status') not in ('APPROVED','PRODUCTION_APPROVED')):
             raise NotApprovedForKPI(f"{catalog['shop_id']}: {catalog.get('validation_status')}")
         version=c.execute('SELECT version_id,status FROM dataset_versions WHERE shop_id=?',(catalog['shop_id'],)).fetchone()
         if version is None or version[0]!=catalog['version_id'] or version[1]!=catalog['validation_status']:
@@ -23,8 +23,14 @@ def open_business_dataset(db_path, *, allow_provisional_sandbox=False):
         c.close();raise
 
 def query_entity_count(connection,catalog,entity):
-    if entity not in catalog['row_counts']:raise ValueError('Unknown entity')
-    if catalog['row_counts'][entity]==0:return None  # unsupported is not zero
-    if entity not in {'orders','order_lines','payments','products','customers','service_visits'}:
-        raise ValueError('Entity not exposed by this consumer example')
-    return connection.execute(f'SELECT COUNT(*) FROM "{entity}" WHERE shop_id=?',(catalog['shop_id'],)).fetchone()[0]
+    """Return verified count. Unmapped is unknown, but a mapped empty table is zero."""
+    import re
+    if not isinstance(entity,str) or not re.fullmatch(r'[a-z][a-z0-9_]*',entity):
+        raise ValueError('Invalid entity name')
+    counts=catalog.get('row_counts',{})
+    if entity not in counts:raise ValueError('Unmapped entity: '+entity)
+    tables={r[0] for r in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    if entity not in tables:raise ValueError('Missing entity table: '+entity)
+    actual=connection.execute(f'SELECT COUNT(*) FROM "{entity}" WHERE shop_id=?',(catalog['shop_id'],)).fetchone()[0]
+    if actual!=counts[entity]:raise ValueError(f'Catalog count mismatch: {entity}')
+    return actual
