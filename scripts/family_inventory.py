@@ -44,6 +44,7 @@ SIMPLE={
 
 def role(shop,path,obj):
     stem=path.stem
+    if shop=='dev_003' and obj=='BanHang':return 'order_lines'
     if shop=='dev_002':
         return 'unit_conversions' if stem=='DanhSachQuyDoi' else ('order_lines' if stem.startswith('BanHang_T') and obj=='DonHang_ChiTiet' else 'unclassified')
     if shop=='dev_005' and stem.startswith('BanHang_Thang'):
