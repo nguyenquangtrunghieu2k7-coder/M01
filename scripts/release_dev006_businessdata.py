@@ -40,7 +40,7 @@ def publish(pos,db,out,approver):
         if catalog.get('unmapped_objects'):failures.append('unmapped source objects')
         if catalog.get('source_objects_processed')!=17:failures.append('source coverage count !=17')
         if sum(catalog.get('reference_counts',{}).values())!=89:failures.append('reference rows !=89')
-        if catalog.get('duplicate_row_counts',{}).get('order_lines')!=checks['parity']['exact_duplicate_copies']:
+        if catalog.get('duplicate_row_counts',{}).get('order_lines',0)!=checks['parity']['exact_duplicate_copies']:
             failures.append('missing exact duplicate evidence')
         if c.execute('SELECT COUNT(*) FROM validation_issues').fetchone()[0]:failures.append('validation issues present')
         if c.execute('PRAGMA integrity_check').fetchone()[0]!='ok':failures.append('SQLite integrity')
