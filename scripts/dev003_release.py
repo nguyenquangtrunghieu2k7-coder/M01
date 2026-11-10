@@ -31,7 +31,9 @@ def main():
  check('candidate_integrity',candidate.get('sqlite_integrity')=='ok' and candidate.get('foreign_keys')==0)
  check('duplicate_lineage',candidate.get('excluded',{}).get('exact_duplicate_line')==1994)
  check('status_counts',candidate.get('statuses')==STATUS)
- check('source_counts',all(candidate.get('accepted',{}).get(k)==v for k,v in EXPECTED.items()),candidate.get('accepted'))
+ # Exact duplicates are deliberately excluded from the canonical mart.
+ # Their count is verified separately in duplicate_lineage, not accepted.
+ check('source_counts',all(candidate.get('accepted',{}).get(k)==v for k,v in EXPECTED.items() if k!='exact_duplicate_lines'),candidate.get('accepted'))
  proc=subprocess.run([sys.executable,str(pathlib.Path(__file__).with_name('dev003_financial_qa.py')),'--source',str(src),'--candidate',str(d)],text=True,capture_output=True)
  check('independent_qa_execution',proc.returncode==0,proc.stderr[-900:] if proc.returncode else None)
  if proc.returncode:print(proc.stderr[-1300:],file=sys.stderr)
