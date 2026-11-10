@@ -58,10 +58,13 @@ class FamilyBuilderTests(unittest.TestCase):
             qa,db=build(root,'dev_013',[('QuanLy.xlsx','KhuyenMai','xlsx','promotions')])
             self.assertTrue(qa['structural_pass'],qa['failures'])
             self.assertEqual(qa['source_reference_records'],1)
+            self.assertEqual(qa['family_native_records'],1)
+            self.assertEqual(qa['family_native_role_counts']['promotions'],1)
             self.assertEqual(qa['mart_row_counts']['orders'],0)
             with sqlite3.connect(db) as c:
                 self.assertEqual(c.execute('SELECT COUNT(*) FROM source_reference_records').fetchone()[0],1)
                 self.assertEqual(c.execute('SELECT COUNT(*) FROM staging_rows').fetchone()[0],1)
-                self.assertEqual(c.execute('SELECT COUNT(*) FROM source_lineage').fetchone()[0],1)
+                self.assertEqual(c.execute('SELECT COUNT(*) FROM family_native_records WHERE family_role=?',('promotions',)).fetchone()[0],1)
+                self.assertEqual(c.execute('SELECT COUNT(*) FROM source_lineage').fetchone()[0],2)
 
 if __name__=='__main__':unittest.main()
