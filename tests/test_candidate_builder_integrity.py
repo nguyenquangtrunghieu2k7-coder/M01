@@ -47,10 +47,10 @@ class CandidateBuilderIntegrityTests(unittest.TestCase):
             shop.mkdir(parents=True)
             with sqlite3.connect(shop / 'pos.sqlite') as db:
                 db.execute('CREATE TABLE san_pham(IDCuaHang TEXT, MaHangHoa TEXT, TenGoi TEXT)')
-                db.execute('CREATE TABLE don_hang(IDCuaHang TEXT, MaHoaDon TEXT, ThoiGianLap TEXT, TinhTrang TEXT)')
+                db.execute('CREATE TABLE don_hang(IDCuaHang TEXT, MaHoaDon TEXT, NgayLap TEXT, ThoiGianLap TEXT, TinhTrang TEXT)')
                 db.execute('CREATE TABLE chi_tiet_don(IDCuaHang TEXT, MaHoaDon TEXT, SoThuTu INTEGER, MaHangHoa TEXT, SL INTEGER, TriGia INTEGER)')
                 db.execute("INSERT INTO san_pham VALUES('dev_006','SP01','Thuốc A')")
-                db.execute("INSERT INTO don_hang VALUES('dev_006','ORD01','2025-04-01 06:00:39','completed')")
+                db.execute("INSERT INTO don_hang VALUES('dev_006','ORD01','45748','2025-04-01 06:00:39','completed')")
                 db.execute("INSERT INTO chi_tiet_don VALUES('dev_006','ORD01',1,'SP01',2,5000)")
                 db.execute("INSERT INTO chi_tiet_don VALUES('dev_006','ORD01',2,'SP99',1,2000)")
                 db.commit()
@@ -65,6 +65,8 @@ class CandidateBuilderIntegrityTests(unittest.TestCase):
                 header_doc=db.execute("SELECT document_uid FROM orders WHERE source_business_id='ORD01'").fetchone()[0]
                 line_doc=db.execute("SELECT document_uid FROM order_lines WHERE source_business_id='ORD01'").fetchone()[0]
                 self.assertEqual(header_doc,line_doc)
+                self.assertEqual(db.execute("SELECT event_date FROM orders WHERE source_business_id='ORD01'").fetchone()[0], '2025-04-01')
+                self.assertEqual(db.execute("SELECT event_date FROM order_lines WHERE source_business_id='ORD01' LIMIT 1").fetchone()[0], '2025-04-01')
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM order_lines').fetchone()[0],1)
                 self.assertEqual(db.execute("SELECT COUNT(*) FROM validation_issues WHERE code='MISSING_ITEM'").fetchone()[0],1)
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM staging_rows').fetchone()[0],4)
