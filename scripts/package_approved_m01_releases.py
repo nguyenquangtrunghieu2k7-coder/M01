@@ -41,9 +41,16 @@ def package(root,destination,shop):
  for k,info in gate.get('checks',{}).items():
   if not isinstance(info,dict) or info.get('pass') is not True:raise RuntimeError('Gate evidence failed: '+k)
  # Validate source references are complete and tied to the approved gate.
- source_hashes=candidate.get('source_sha256')
- if shop=='011':source_hashes={'SoBanHang.xlsx':source_hashes}
- if gate.get('source_sha256')!=source_hashes:raise RuntimeError('Source SHA mismatch gate vs candidate')
+ candidate_source_hashes=candidate.get('source_sha256')
+ gate_source_hashes=gate.get('source_sha256')
+ # dev_011 records its single XLSX source SHA as a string in both the
+ # candidate and approved gate; dev_008/dev_010 use file-to-SHA mappings.
+ if gate_source_hashes!=candidate_source_hashes:
+  raise RuntimeError('Source SHA mismatch gate vs candidate for dev_'+shop)
+ source_hashes=({'SoBanHang.xlsx':candidate_source_hashes}
+                if shop=='011' else candidate_source_hashes)
+ if not isinstance(source_hashes,dict) or not source_hashes:
+  raise RuntimeError('Invalid source manifest for dev_'+shop)
  con=sqlite3.connect('file:'+str(source_db.resolve())+'?mode=ro',uri=True)
  try:
   if con.execute('PRAGMA integrity_check').fetchone()[0]!='ok':raise RuntimeError('SQLite corrupt')
