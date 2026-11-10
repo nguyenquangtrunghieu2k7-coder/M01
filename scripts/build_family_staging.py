@@ -99,6 +99,7 @@ def create_db(path):
     CREATE INDEX idx_family_staging_source
         ON family_staging_rows(source_id,source_row);
     CREATE TABLE family_catalog(shop_id TEXT PRIMARY KEY,catalog_json TEXT NOT NULL);
+    CREATE TABLE business_catalog(catalog_json TEXT NOT NULL);
     """)
     return db
 
@@ -180,7 +181,13 @@ def build(shop,root,contracts_dir,output_dir):
             'family_policy':policy,
             'business_marts_approved':[],
             'notes':'Physical-source staging only; semantic family mapping and KPI parity remain pending. Not an M03 production release.'}
+        # M03 consumer-shaped catalog permits explicit SANDBOX inspection,
+        # while production open still fails closed until KPI acceptance.
+        catalog['row_counts']={'family_staging_rows':all_rows,
+                               'source_objects':len(sources)}
+        catalog['capabilities']={'family_staging_rows':True,'source_objects':True}
         db.execute('INSERT INTO family_catalog VALUES(?,?)',(shop,json.dumps(catalog,ensure_ascii=False)))
+        db.execute('INSERT INTO business_catalog VALUES(?)',(json.dumps(catalog,ensure_ascii=False),))
         db.commit()
         integrity=db.execute('PRAGMA integrity_check').fetchone()[0]
         registered=db.execute('SELECT COUNT(*) FROM source_objects').fetchone()[0]
