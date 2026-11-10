@@ -4,7 +4,7 @@ import argparse,datetime,hashlib,json,os,pathlib,shutil,sqlite3,subprocess,sys,t
 SOURCES=tuple('BanHang_T%d_%d.xlsx'%(m,y) for y in (2025,2026) for m in range(1,13) if y==2025 or m<=5)+('DanhSachQuyDoi.xlsx',)
 COUNTS={'orders':53164,'order_lines':84146,'topping_components':1095,'unit_conversions':2,'source_rows':85092,'excluded_rows':946,'mapping_issues':0}
 STATUSES={'completed':51851,'cancelled':1069,'returned':206,'in_progress':38}
-EXCLUDED={'repeated_header':420,'daily_summary':526}
+EXCLUDED={'repeated_header':420,'daily_summary':509,'non_transaction':17}
 KPI={
  'completed_order_count':{'source':'orders','grain':'order_id','date_column':'order_date','filter':"status='completed'",'measure':'COUNT(*)'},
  'completed_sales_revenue':{'source':'orders','grain':'order_id','date_column':'order_date','filter':"status='completed'",'measure':'SUM(item_total)','unit':'VND','note':'Source line totals already include embedded toppings and exclude line discounts; never add topping amount again.'},
