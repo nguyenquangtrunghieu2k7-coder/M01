@@ -126,7 +126,7 @@ class CandidateBuilderIntegrityTests(unittest.TestCase):
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
             data=json.loads(report.read_text())
             self.assertTrue(data['acceptance_pass'],data['sample_failures'])
-            self.assertEqual(data['source_order_lines'],2)
+            self.assertEqual(data['source_line_count'],2)
             self.assertEqual(data['mart_revenue_after_dedup_vnd'],5000)
             self.assertEqual(data['exact_duplicate_copies'],1)
             self.assertEqual(data['mart_lines'],1)
