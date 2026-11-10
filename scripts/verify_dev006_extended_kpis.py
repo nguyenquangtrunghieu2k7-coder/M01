@@ -26,6 +26,12 @@ def money(value):
     if isinstance(value,int):return value
     if value is None:raise ValueError('Missing source receipt')
     s=str(value).strip().lower().replace(' ','').replace('₫','').replace('đ','')
+    embedded=re.fullmatch(r'([+-]?\\d+)tr(\\d{1,3})',s)
+    if embedded:
+        amount=Decimal(embedded.group(1)+'.'+embedded.group(2))*1000000
+        if amount!=amount.to_integral_value():
+            raise ValueError('Fractional VND: '+repr(value))
+        return int(amount)
     unit=1
     if s.endswith('tr'):
         s=s[:-2];unit=1000000
