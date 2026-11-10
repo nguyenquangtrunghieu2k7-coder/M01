@@ -91,7 +91,11 @@ def main():
     if money[2]!=0 or money[3]!=0:issue(FILES['sales'],i,'CANCELLED_WITH_PAYMENT',oid)
     fee=0
    elif mapped=='returned':
-    if money[2]+money[3]!=0:issue(FILES['sales'],i,'RETURNED_WITH_PAYMENT',oid)
+    # Returned invoices retain their original paid/debt values as historical
+    # ledger fields; exclude their entire invoices from booked revenue.
+    # Do NOT zero the source cash fields or double-count refunds.
+    if money[2]+money[3]!=money[0]-money[1]:
+     issue(FILES['sales'],i,'RETURNED_LEDGER_EQUATION',oid)
     fee=0
    else:
     expected=15000 if clean(r['Nguồn']) in ('phone','zalo_oa') else 0
