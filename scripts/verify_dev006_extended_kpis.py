@@ -49,7 +49,7 @@ def source_facts(db):
 
 def source_expected(facts,metric,*,asof,start=None,end=None,product_id=None,ingredient=None,payment_method=None):
     cut=str(asof)
-    first=start or '';last=end or ''
+    first=start or '';last=min(end,cut) if end is not None else ''
     within=lambda day:bool(day and first<=str(day)[:10]<=last)
     orders=facts['orders']
     if metric in ('order_count','cancel_rate'):
