@@ -4,6 +4,8 @@ on:
     branches: [fix/m03-businessdata-contract-20261110]
     paths:
       - 'scripts/family_inventory.py'
+      - 'scripts/family_semantics.py'
+      - 'scripts/rollout_family13.sh'
       - 'scripts/build_family_staging.py'
       - 'tests/test_family_staging.py'
       - '.github/workflows/family-contract.yml'
@@ -24,6 +26,8 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install openpyxl
       - name: Compile family importer and inventory
-        run: python -m py_compile scripts/family_inventory.py scripts/build_family_staging.py
+        run: python -m py_compile scripts/family_inventory.py scripts/build_family_staging.py scripts/family_semantics.py
+      - name: Validate rollout shell command
+        run: bash -n scripts/rollout_family13.sh
       - name: Synthetic family-specific preservation tests
         run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_family_staging.py' -v
