@@ -41,10 +41,11 @@ def main():
  CREATE TABLE inbound_lines(source_file TEXT,source_row INTEGER,receipt_id TEXT,product_id TEXT,raw_json TEXT,PRIMARY KEY(source_file,source_row));
  CREATE TABLE excluded_records(source_file TEXT,source_row INTEGER,reason TEXT,raw_json TEXT,PRIMARY KEY(source_file,source_row));
  CREATE TABLE mapping_issues(source_file TEXT,source_row INTEGER,issue TEXT,details TEXT);
+ CREATE TABLE dedup_lineage(duplicate_source_file TEXT,duplicate_source_row INTEGER,retained_source_file TEXT,retained_source_row INTEGER,order_id TEXT,duplicate_line_amount INTEGER,PRIMARY KEY(duplicate_source_file,duplicate_source_row));
  CREATE INDEX order_lines_order ON order_lines(order_id);""")
  accepted=collections.Counter();excluded=collections.Counter();issues=collections.Counter()
  header_cols=('Ngày xuất','Giờ bán','TT đơn','Thanh toán bằng','Mã người mua','Kênh bán','Tổng tiền hàng','Giảm giá HĐ','Phi ship','Tong tien','Note')
- seen_orders={}
+ seen_orders={};seen_lines={}
  def problem(file,row,code,detail):
   issues[code]+=1;con.execute('INSERT INTO mapping_issues VALUES(?,?,?,?)',(file,row,code,str(detail)[:500]))
  def skip(file,row,reason,r):
@@ -71,6 +72,16 @@ def main():
     ordered_at=val(r.get('Giờ bán'))
     con.execute('INSERT INTO orders VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(bill,date,ordered_at,st,normalized,val(r.get('Thanh toán bằng')),val(r.get('Mã người mua')),val(r.get('Kênh bán')),*amounts,val(r.get('Note')),file,row))
     accepted['orders']+=1
+   # Verify exact entire-row equivalence; NEVER deduplicate by Bill+Số dòng alone.
+   signature=tuple((field,val(value)) for field,value in sorted(r.items()))
+   if signature in seen_lines:
+    old_file,old_row=seen_lines[signature]
+    duplicate_amount=amount(r.get('Thành tiền'))
+    if duplicate_amount is None:problem(file,row,'UNPARSEABLE_DUPLICATE_MONEY',bill)
+    skip(file,row,'exact_duplicate_line',r)
+    con.execute('INSERT INTO dedup_lineage VALUES(?,?,?,?,?,?)',(file,row,old_file,old_row,bill,duplicate_amount))
+    continue
+   seen_lines[signature]=(file,row)
    amounts=[amount(r.get(c)) for c in ('Đơn giá (đ)','Giảm (đ)','Thành tiền')]
    if any(v is None for v in amounts):problem(file,row,'UNPARSEABLE_LINE_MONEY',bill)
    con.execute('INSERT INTO order_lines VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',(file,row,bill,val(r.get('Số dòng')),val(r.get('Ma hang')),val(r.get('Tên hàng')),val(r.get('Đơn vị (tính)')),val(r.get('SLg')),val(r.get('SL lẻ')),*amounts))
@@ -90,9 +101,11 @@ def main():
  by_status=dict(con.execute('SELECT normalized_status,COUNT(*) FROM orders GROUP BY normalized_status'))
  linekey_dups=con.execute("SELECT SUM(n-1) FROM (SELECT COUNT(*) n FROM order_lines GROUP BY order_id,line_number HAVING n>1)").fetchone()[0] or 0
  summaries=con.execute("""SELECT COUNT(*),SUM(CASE WHEN order_items_total=(SELECT SUM(line_total) FROM order_lines l WHERE l.order_id=o.order_id) THEN 1 ELSE 0 END),SUM(CASE WHEN order_payable=order_items_total-order_discount+shipping_fee THEN 1 ELSE 0 END) FROM orders o""").fetchone()
- report={'approval':'CANDIDATE_NOT_APPROVED','source_hashes':hashes,'accepted':dict(accepted),'excluded':dict(excluded),'issues':dict(issues),'status_orders':by_status,'source_rows_by_file':dict(independent),'repeated_order_line_keys':linekey_dups,'order_count':summaries[0],'orders_matching_item_sum':summaries[1],'orders_matching_payable_equation':summaries[2],'notes':['Repeated order-line keys retained as raw lines until QA determines exact duplicate semantics','Source-level inventory and purchase history retained; no inventory or margin KPI approved','Financial and source-independent QA NOT RUN']}
+ report={'approval':'CANDIDATE_NOT_APPROVED','source_hashes':hashes,'accepted':dict(accepted),'excluded':dict(excluded),'issues':dict(issues),'status_orders':by_status,'source_rows_by_file':dict(independent),'repeated_order_line_keys':linekey_dups,'dedup_lineage_count':report['dedup_lineage_count'],'dedup_lineage_amount':report['dedup_lineage_amount'],'order_count':summaries[0],'orders_matching_item_sum':summaries[1],'orders_matching_payable_equation':summaries[2],'notes':['Exact duplicated source lines retained in source_rows and dedup_lineage and excluded from order_lines','Source-level inventory and purchase history retained; no inventory or margin KPI approved','Financial and source-independent QA NOT RUN']}
+ report['dedup_lineage_count']=con.execute('SELECT COUNT(*) FROM dedup_lineage').fetchone()[0]
+ report['dedup_lineage_amount']=con.execute('SELECT SUM(duplicate_line_amount) FROM dedup_lineage').fetchone()[0]
  (out/'candidate_report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
- (out/'manifest.json').write_text(json.dumps({'approval':'CANDIDATE_NOT_APPROVED','version':'dev008-candidate-v1','source_sha256':hashes,'sqlite_sha256':hashlib.sha256(db.read_bytes()).hexdigest(),'kpis_supported':[]},ensure_ascii=False,indent=2))
+ (out/'manifest.json').write_text(json.dumps({'approval':'CANDIDATE_NOT_APPROVED','version':'dev008-candidate-v2','source_sha256':hashes,'sqlite_sha256':hashlib.sha256(db.read_bytes()).hexdigest(),'kpis_supported':[]},ensure_ascii=False,indent=2))
  con.close()
  print(json.dumps({'output':str(out),'approval':report['approval'],'accepted':dict(accepted),'excluded':dict(excluded),'issues':dict(issues),'status_orders':by_status,'repeated_order_line_keys':linekey_dups,'order_count':summaries[0],'orders_matching_item_sum':summaries[1],'orders_matching_payable_equation':summaries[2]},ensure_ascii=False,indent=2))
 if __name__=='__main__':main()
