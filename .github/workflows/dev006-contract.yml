@@ -22,6 +22,8 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install openpyxl
+      - name: Validate local release shell syntax
+        run: bash -n scripts/build_and_release_dev006.sh
       - name: Compile dev006 acceptance and release scripts
         run: python -m py_compile scripts/release_dev006_businessdata.py scripts/verify_dev006_m03_parity.py scripts/m03_consumer.py build_9_shops.py
       - name: Candidate builder and exact dedup regressions
