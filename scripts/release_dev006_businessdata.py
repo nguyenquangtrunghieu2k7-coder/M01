@@ -107,7 +107,7 @@ def publish(pos,db,out,approver):
         'source_pos_sha256':sha256(pos)
     })
     (out/'dev_006_config.json').write_text(
-        json.dumps(approved_config,ensure_ascii=False,indent=2)+'\\n',encoding='utf-8')
+        json.dumps(approved_config,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     manifest={'shop_id':'dev_006','family':'pharmacy_pos',
        'approval_status':'PRODUCTION_APPROVED','approved_by':approver,
        'approved_at_utc':now,'version_id':cat['version_id'],
