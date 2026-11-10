@@ -173,6 +173,20 @@ def publish(source,candidate,out,approver):
   for sheet,rn in notes:
    sid=db.execute('SELECT source_id FROM raw_sources WHERE source_object=? AND shop_id=?',
                   (sheet,SHOP)).fetchone()[0]
+   # Retain note text, provenance and source row in a family-native ledger.
+   note_uid='dev012-note:'+sheet+':'+str(rn)
+   raw=db.execute('SELECT raw_json FROM staging_rows WHERE source_id=? AND source_row=?',
+                  (sid,rn)).fetchone()[0]
+   db.execute('INSERT INTO family_native_records VALUES(?,?,?,?,?,?,?,?,?)',
+      (note_uid,SHOP,sid,rn,sheet,'motorcycle_service_ledger','ledger_note',
+       raw,cat['version_id']))
+   db.execute("""UPDATE source_lineage SET entity_table='family_native_records',
+       entity_uid=?,transform_id='source_ledger_note'
+       WHERE shop_id=? AND source_id=? AND source_row=?
+         AND entity_table='service_visits'""",(note_uid,SHOP,sid,rn))
+   db.execute('UPDATE staging_rows SET parsed_json=? WHERE source_id=? AND source_row=?',
+      (json.dumps({'classification':'LEDGER_NOTE_NOT_SERVICE_VISIT',
+                   'count_in_kpi':False}),sid,rn))
    db.execute('DELETE FROM service_visits WHERE source_id=? AND source_row=?',(sid,rn))
   db.executemany("""UPDATE service_visits SET event_date=?,amount=?,status_raw=?
       WHERE shop_id=? AND source_id=(SELECT source_id FROM raw_sources
@@ -180,6 +194,7 @@ def publish(source,candidate,out,approver):
       [(x['date'],str(x['money_vnd']), 'warranty' if x['warranty'] else 'paid',
         SHOP,x['sheet'],SHOP,x['row']) for x in visits])
   cat['row_counts']['service_visits']=len(visits)
+  cat['family_native_counts']=dict(cat.get('family_native_counts',{}),ledger_note=len(notes))
   cat['validation_status']='APPROVED'
   cat['approval_status']='PRODUCTION_APPROVED'
   cat['approved_metrics']=APPROVED
@@ -195,7 +210,9 @@ def publish(source,candidate,out,approver):
    raise ValueError('release sqlite integrity failed')
   first,last=db.execute('SELECT MIN(visit_date),MAX(visit_date) FROM family_service_facts').fetchone()
   for key,label in [('visit_count','visit_count'),('service_revenue','service_revenue_vnd'),
-                    ('warranty_visit_count','warranty_visit_count')]:
+                    ('warranty_visit_count','warranty_visit_count'),
+                    ('warranty_rate','warranty_rate_percent'),
+                    ('average_paid_ticket','average_paid_ticket_vnd')]:
    if query_kpi(db,key,start_date=first,end_date=last,as_of_date=last)!=qa['kpis'][label]:
     raise ValueError('M03 reader smoke KPI mismatch '+key)
  manifest={'shop_id':SHOP,'family':'motorcycle_service_ledger','release_id':str(uuid4()),
