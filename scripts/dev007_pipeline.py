@@ -72,7 +72,10 @@ def main():
    excluded['daily_subtotal']+=1
    db.execute('INSERT INTO excluded_records VALUES(?,?,?,?)',(FILES['sales'],i,'daily_subtotal',s))
    continue
-  header=tuple(clean(r[k]) for k in header_keys)
+  # Customer display labels can vary per line (phone suffix, accent variants).
+  # Preserve every raw value in source_rows; anchor the order display name
+  # to its first row, but compare only stable order-level financial metadata.
+  header=tuple(clean(r[k]) for k in header_keys if k!='Họ tên khách')
   if oid in order_headers:
    if header!=order_headers[oid]:issue(FILES['sales'],i,'CONFLICTING_ORDER_HEADER',oid)
   else:
