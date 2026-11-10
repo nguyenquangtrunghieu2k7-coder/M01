@@ -1,0 +1,407 @@
+{
+  "schema_version": "0.1.0",
+  "config_version": "0.1.0",
+  "contract_version": "0.1.0",
+  "shop_id": "dev_013",
+  "family_id": "F01_POS_LINE_ITEM",
+  "d2_subfamily": "A5 - Mixed invoice rows with adjustment records",
+  "status": "BLOCKED_PENDING_MAPPING_APPROVAL",
+  "profile_report_path": "reports/profiling/d4/profile_report.json",
+  "profile_fingerprint": null,
+  "source_objects": [
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2025.xlsx",
+      "object_selector": "T05-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-126",
+      "profile_schema_sha256": "307b62f24db0fe42c8717c541d3431de92caa023ff2aa5f179065e850ec9bc6d",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2025.xlsx",
+      "object_selector": "T06-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-127",
+      "profile_schema_sha256": "04fe6c1ce2f6d4af31e729cf210fd74faaebe439597f4daca98a563efcd74840",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2025.xlsx",
+      "object_selector": "T07-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-128",
+      "profile_schema_sha256": "9f81882db8e7a5587659d2e9a7a3917b52c5e122283794e2043edb0091a3141a",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2025.xlsx",
+      "object_selector": "T08-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-129",
+      "profile_schema_sha256": "d75bd088aa257925e07416b4cb79ca89152ba8d1359341b20e3fb6def91331d0",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2025.xlsx",
+      "object_selector": "T09-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-130",
+      "profile_schema_sha256": "0f2474dddfbf05cf61bde8ac9b219c90598fb4c95c316b60edcc822ef736af48",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2025.xlsx",
+      "object_selector": "T10-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-131",
+      "profile_schema_sha256": "488ab78405b97fb295bfba40e0f799f8b05e22c206a6cd27339ca45ba9783964",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2025.xlsx",
+      "object_selector": "T11-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-132",
+      "profile_schema_sha256": "20efbfa869cda437e6628eb092675124b7058a1ecfb0d61acaba191334d96fd9",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2025.xlsx",
+      "object_selector": "T12-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-133",
+      "profile_schema_sha256": "db28ce039cab3d22f7710d9a3c63bdcf20b26cdad2b6b3cf5e2fc3c08df5ef27",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2026.xlsx",
+      "object_selector": "T01-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-134",
+      "profile_schema_sha256": "c8e4d3615226e69e00c5b1c4552d81f178ce72e33adafd941d5db8a096268361",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2026.xlsx",
+      "object_selector": "T02-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-135",
+      "profile_schema_sha256": "a8920fb09a90af3b24dfa5708cdebb627dc51c15c7a0d4587f536957935c01a1",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2026.xlsx",
+      "object_selector": "T03-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-136",
+      "profile_schema_sha256": "42a4ffab1d4b40973dfb0328d32f4da45e21f2c4704781df3b9e4502e84567f6",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2026.xlsx",
+      "object_selector": "T04-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-137",
+      "profile_schema_sha256": "11756cf0f4ced5a1de47688d94c25597ff2e4729501fe583ac636e43309f1977",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2026.xlsx",
+      "object_selector": "T05-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-138",
+      "profile_schema_sha256": "fac4e49cebd5241ee010a02c3fb9f2d3d5c2497875b9007e161bd06f7dd9ccf5",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/BanHang_2026.xlsx",
+      "object_selector": "T06-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-139",
+      "profile_schema_sha256": "2c16923bd98618adde3fd3525d0a1b0424eba4fd927538f28e28958395600ccd",
+      "column_names_observed": [
+        "ĐG",
+        "TT",
+        "SL",
+        "ĐVT",
+        "Tên hàng",
+        "HĐ",
+        "Ngày",
+        "Khách",
+        "Kênh",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/QuanLy.xlsx",
+      "object_selector": "DanhMuc",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-140",
+      "profile_schema_sha256": "53bcfe30be29e9396fd9a0bed607d0f0250f1baac8667fa252260970efa9e9e9",
+      "column_names_observed": [
+        "Tên hàng",
+        "Tên gọi khác",
+        "Nhóm",
+        "Hãng",
+        "Số / Size",
+        "ĐVT",
+        "Quy đổi"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/QuanLy.xlsx",
+      "object_selector": "KhachHang",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-141",
+      "profile_schema_sha256": "67cc5df86057cb19e1231bbcea62fcd911fb4aa95d36ca5cfcf61bed6cd302c5",
+      "column_names_observed": [
+        "Tên KH",
+        "SĐT",
+        "Tên bé",
+        "Ngày đăng ký",
+        "Điểm hiện có"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/QuanLy.xlsx",
+      "object_selector": "NhapHang",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-142",
+      "profile_schema_sha256": "f5b10a2ac9ff3e689545eb026e1770f2eac0e006a8c0573504f4ca8e3a5fed3e",
+      "column_names_observed": [
+        "Ngày",
+        "Số phiếu",
+        "Nhà cung cấp",
+        "Hàng",
+        "SL",
+        "ĐVT",
+        "Đơn giá",
+        "Thành tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_013/QuanLy.xlsx",
+      "object_selector": "KhuyenMai",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-143",
+      "profile_schema_sha256": "e8db72e388da3d6a2b789526333a12755f83ed6e3d9bf6d50e7e0d3da24922ae",
+      "column_names_observed": [
+        "Chương trình",
+        "Hàng áp dụng",
+        "Từ ngày",
+        "Đến ngày"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    }
+  ],
+  "mappings": [],
+  "join_rules": [],
+  "validation_policy": {
+    "fail_closed": true,
+    "quarantine_on_parse_error": true,
+    "reconciliation_tolerance": null
+  },
+  "unresolved_questions": [
+    "Validate business grain, repeated headers, totals and row-level semantics against actual samples",
+    "Approve source-to-canonical mappings with reviewer evidence",
+    "Confirm join rules and numeric/date/unit parsing before activation"
+  ],
+  "mapping_approval_status": "UNVERIFIED"
+}

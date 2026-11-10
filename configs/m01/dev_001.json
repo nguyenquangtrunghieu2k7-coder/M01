@@ -1,0 +1,32 @@
+{
+  "shop_id": "dev_001",
+  "contract_version": "0.2.0",
+  "approval_status": "EVIDENCE_VALIDATED_NOT_APPROVED",
+  "sources": [
+    {
+      "path": "public_test/data/dev_001/So_chi_tiet_ban_hang.xlsx",
+      "format": "xlsx",
+      "object": "Sheet1",
+      "header_row": 4,
+      "grain": "line_item",
+      "fields": {
+        "business_id": "Mã đơn hàng",
+        "date": "Ngày",
+        "item": "Tên hàng hóa",
+        "unit": "Đơn vị tính",
+        "quantity": "Số lượng",
+        "unit_price": "Đơn giá",
+        "amount": "Thành tiền",
+        "status": "Trạng thái",
+        "customer": "Khách hàng"
+      },
+      "evidence": {
+        "business_semantics": "public_test/data/dev_001/README.md",
+        "physical_columns": "profile_report.json",
+        "approval": "review_required"
+      }
+    }
+  ],
+  "lineage_policy": "cell and source row",
+  "safety_policy": "fail_closed"
+}

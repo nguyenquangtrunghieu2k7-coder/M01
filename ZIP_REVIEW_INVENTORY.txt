@@ -1,0 +1,37 @@
+M01_9_shops_mapping_candidate.zip: 2 code files
+D1_data_inventory_for_repo.zip: 0 code files
+rapptor-iot_for_esp32_2432s028-main.zip: 0 code files
+auto-fill-hust-master (1).zip: 0 code files
+Tin Nhắn feedback từ học viên-20260719T173533Z-1-001.zip: 0 code files
+D4_generic_profiler_for_repo.zip: 5 code files
+online+retail.zip: 0 code files
+M01_to_M03_integration_toolkit.zip: 23 code files
+OneDrive_1_8-9-2026.zip: 0 code files
+M01_source_mapping_audit.zip: 1 code files
+astah_uml_license2026-2027.xml.zip: 0 code files
+Thầy Khánh-20260722T173508Z-1-001.zip: 0 code files
+M01_data_processing_pilot_and_D5_evidence_v2.zip: 19 code files
+Adobe.Illustrator.2023.u3.Multilingual.zip: SKIPPED LARGE
+EVKeyMac.zip: 0 code files
+OneDrive_2022-10-13.zip: SKIPPED LARGE
+D2_data_classification_for_repo.zip: 0 code files
+giang_sinh_an_lanh-main.zip: 0 code files
+phase8_implementation_v2.zip: 0 code files
+Tin nhắn kèm riêng, hỗ trợ 1_1-20260719T173533Z-1-001.zip: 0 code files
+TraCuuGiangVienHUST-main.zip: 0 code files
+NearDrop.app.zip: 0 code files
+XPPenMac_4.0.14_260313.zip: 0 code files
+OneDrive_1_17-3-2026.zip: UNREADABLE
+template3-83.v4.86.zip: 0 code files
+drive-download-20260107T073628Z-1-001.zip: 0 code files
+archive.zip: 0 code files
+drive-download-20260107T073642Z-1-001.zip: 0 code files
+FULLHOUSE DEV 1.zip: 0 code files
+auto-fill-hust-master.zip: 0 code files
+D3_commonality_analysis_for_repo.zip: 0 code files
+M01_BUSINESSDATASET_LOCAL.zip: 1 code files
+M01_SOURCE_AUDIT.zip: 0 code files
+M01_M03_HANDOFF.zip: 1 code files
+M01_BUSINESSDATASET_14_SHOPS.zip: SKIPPED LARGE
+M01_BUSINESSDATASET_FINAL.zip: 1 code files
+M01_CODE_REVIEW.zip: 15 code files

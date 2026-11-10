@@ -1,0 +1,13 @@
+{
+  "family_id": "F06_SERVICE_TICKET",
+  "name": "Repair/service tickets",
+  "design_status": "PROPOSED",
+  "source_grain_hypothesis": "service_ticket",
+  "canonical_outputs": "service event + optional parties/items",
+  "risk_to_validate": "service != sales; preserve visit grain",
+  "physical_columns": null,
+  "required_profile_evidence": true,
+  "mapping_defaults": [],
+  "join_rules": [],
+  "shop_overrides_required": true
+}

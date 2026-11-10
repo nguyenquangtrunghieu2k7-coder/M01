@@ -1,0 +1,79 @@
+{
+  "schema_version": "0.1.0",
+  "config_version": "0.1.0",
+  "contract_version": "0.1.0",
+  "shop_id": "dev_001",
+  "family_id": "F01_POS_LINE_ITEM",
+  "d2_subfamily": "A1 - POS line-item, relatively compact",
+  "status": "BLOCKED_PENDING_MAPPING_APPROVAL",
+  "profile_report_path": "reports/profiling/d4/profile_report.json",
+  "profile_fingerprint": null,
+  "source_objects": [
+    {
+      "source_path": "public_test/data/dev_001/Danh sách hàng hóa.xlsx",
+      "object_selector": "Sheet1",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-001",
+      "profile_schema_sha256": "d0d132449d2720d91d0094dd23ab044a04859b9228190225cbc9f1f9bef04a25",
+      "column_names_observed": [
+        "Vị trí",
+        "Mã hàng hóa",
+        "Định mức tồn tối đa",
+        "Được bán trực tiếp",
+        "Ghi chú",
+        "Thuộc tính",
+        "Tên hàng hóa",
+        "Mã barcode",
+        "Mô tả sản phẩm",
+        "Mã HH Liên quan",
+        "Bảo hành",
+        "Nhóm hàng hóa",
+        "Đơn vị tính",
+        "Trọng lượng",
+        "Định mức tồn tối thiểu",
+        "Mẫu ghi chú",
+        "Giá bán",
+        "Hình ảnh",
+        "Giá vốn"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_001/So_chi_tiet_ban_hang.xlsx",
+      "object_selector": "Sheet1",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-002",
+      "profile_schema_sha256": "b93cb93c5b2fcc36a00e68e078511d7eb5a9c768ececf2840c89b485bc9f0b62",
+      "column_names_observed": [
+        "Ngày",
+        "Mã đơn hàng",
+        "Tên hàng hóa",
+        "Đơn vị tính",
+        "Số lượng",
+        "Đơn giá",
+        "Thành tiền",
+        "Trạng thái",
+        "Số lượng quy đổi",
+        "Khách hàng"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    }
+  ],
+  "mappings": [],
+  "join_rules": [],
+  "validation_policy": {
+    "fail_closed": true,
+    "quarantine_on_parse_error": true,
+    "reconciliation_tolerance": null
+  },
+  "unresolved_questions": [
+    "Validate business grain, repeated headers, totals and row-level semantics against actual samples",
+    "Approve source-to-canonical mappings with reviewer evidence",
+    "Confirm join rules and numeric/date/unit parsing before activation"
+  ],
+  "mapping_approval_status": "UNVERIFIED"
+}

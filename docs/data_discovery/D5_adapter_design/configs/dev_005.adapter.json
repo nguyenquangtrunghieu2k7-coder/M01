@@ -1,0 +1,492 @@
+{
+  "schema_version": "0.1.0",
+  "config_version": "0.1.0",
+  "contract_version": "0.1.0",
+  "shop_id": "dev_005",
+  "family_id": "F01_POS_LINE_ITEM",
+  "d2_subfamily": "A3 - Monthly POS with lot/batch traceability",
+  "status": "BLOCKED_PENDING_MAPPING_APPROVAL",
+  "profile_report_path": "reports/profiling/d4/profile_report.json",
+  "profile_fingerprint": null,
+  "source_objects": [
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang01_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-056",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang01_2026.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-057",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang02_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-058",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang02_2026.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-059",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang03_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-060",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang03_2026.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-061",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang04_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-062",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang04_2026.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-063",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang05_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-064",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang05_2026.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-065",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang06_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-066",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang07_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-067",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang08_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-068",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang09_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-069",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang10_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-070",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang11_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-071",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/BanHang_Thang12_2025.xlsx",
+      "object_selector": "DonHang_ChiTiet",
+      "format": "xlsx",
+      "header_row_observed": 4,
+      "profile_object_id": "D4-072",
+      "profile_schema_sha256": "1f383b66581b4faf853d7b001ba598121ce79572d451792dd39833a16eca09d3",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Ngày đặt hàng",
+        "Trạng thái đơn hàng",
+        "Tên khách hàng",
+        "Tên sản phẩm",
+        "Số lượng sản phẩm",
+        "Giá sản phẩm",
+        "Tổng tiền",
+        "Đơn vị tính"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/DanhSachQuyDoi.xlsx",
+      "object_selector": "Sheet1",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-073",
+      "profile_schema_sha256": "38bce06f1f6d983b31a0777528436bb5d4d67e8b5b85f3716570cbca3544e432",
+      "column_names_observed": [
+        "Tên sản phẩm",
+        "Đơn vị quy đổi",
+        "Tỉ lệ quy đổi",
+        "Đơn vị cơ bản"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/DanhSachSanPham.xlsx",
+      "object_selector": "Sheet1",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-074",
+      "profile_schema_sha256": "a057fe52d6a5d2030d7df5e624ca9d03228098569f814f197948801e3856fe97",
+      "column_names_observed": [
+        "Định mức tồn tối thiểu",
+        "Mã SKU",
+        "Được bán trực tiếp",
+        "Ghi chú",
+        "Mẫu ghi chú",
+        "Bảo hành",
+        "Tên sản phẩm",
+        "Mã HH Liên quan",
+        "Mô tả chi tiết",
+        "Thương hiệu",
+        "Tồn lớn nhất",
+        "Đơn vị",
+        "Thuộc tính",
+        "Mã vạch EAN",
+        "Loại sản phẩm",
+        "Trọng lượng",
+        "Vị trí",
+        "Loại hàng hóa"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/DanhSachThuoc.xlsx",
+      "object_selector": "Sheet1",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-075",
+      "profile_schema_sha256": "e75a014458eed541e1903b47fc04012f5cc7a9111eaeda28fba0caaee8794965",
+      "column_names_observed": [
+        "Mã SKU",
+        "Hoạt chất",
+        "Thuốc kê đơn"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/DonHang_Lo.xlsx",
+      "object_selector": "Sheet1",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-076",
+      "profile_schema_sha256": "8bea2d19d7b04f2cc7a0ceee1de731aabd587ee87323a5d8cf0b0ef4ca897466",
+      "column_names_observed": [
+        "Mã đơn hàng",
+        "Mã lô",
+        "Số lượng",
+        "Số lượng trả"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/DonNhapHang.xlsx",
+      "object_selector": "Sheet1",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-077",
+      "profile_schema_sha256": "4da09c777e1b7f8055f06f9aa250de50eb1b20b94bfe0a43093ba5838c900410",
+      "column_names_observed": [
+        "Mã đơn nhập",
+        "Ngày nhập",
+        "Mã nhà cung cấp"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_005/DonNhapHang_ChiTiet.xlsx",
+      "object_selector": "Sheet1",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-078",
+      "profile_schema_sha256": "af0c899d60dcf80a5878cefb364988891175ef263f5b94689329dd660e63705f",
+      "column_names_observed": [
+        "Mã đơn nhập",
+        "Mã SKU",
+        "Mã lô",
+        "Hạn sử dụng",
+        "Số lượng nhập"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    }
+  ],
+  "mappings": [],
+  "join_rules": [],
+  "validation_policy": {
+    "fail_closed": true,
+    "quarantine_on_parse_error": true,
+    "reconciliation_tolerance": null
+  },
+  "unresolved_questions": [
+    "Validate business grain, repeated headers, totals and row-level semantics against actual samples",
+    "Approve source-to-canonical mappings with reviewer evidence",
+    "Confirm join rules and numeric/date/unit parsing before activation"
+  ],
+  "mapping_approval_status": "UNVERIFIED"
+}

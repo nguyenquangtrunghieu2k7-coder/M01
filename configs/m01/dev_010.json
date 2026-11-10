@@ -1,0 +1,103 @@
+{
+  "shop_id": "dev_010",
+  "contract_version": "0.2.0",
+  "approval_status": "EVIDENCE_VALIDATED_NOT_APPROVED",
+  "sources": [
+    {
+      "path": "public_test/data/dev_010/don_hang.csv",
+      "format": "csv",
+      "object": "don_hang.csv",
+      "header_row": 1,
+      "grain": "order",
+      "fields": {
+        "business_id": "Số CT",
+        "date": "Date",
+        "amount": "Thành tiền",
+        "paid": "Khách trả",
+        "debt": "Con no",
+        "status": "Xử lý",
+        "customer": "Mã thẻ"
+      },
+      "document_scope": "shop",
+      "evidence": {
+        "semantics": "public_test/data/dev_010/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_010/chi_tiet_don.csv",
+      "format": "csv",
+      "object": "chi_tiet_don.csv",
+      "header_row": 1,
+      "grain": "line_item",
+      "fields": {
+        "business_id": "Mã bill",
+        "item": "Mã H.hóa",
+        "quantity": "SoLuong",
+        "unit_price": "Đơn giá (đ)",
+        "amount": "Cộng",
+        "unit": "dvt"
+      },
+      "document_scope": "shop",
+      "evidence": {
+        "semantics": "public_test/data/dev_010/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_010/thanh_toan.csv",
+      "format": "csv",
+      "object": "thanh_toan.csv",
+      "header_row": 1,
+      "grain": "payment",
+      "fields": {
+        "business_id": "Mã đơn",
+        "payment_ref": "Mã TT",
+        "date": "Ngay thu",
+        "amount": "So tien",
+        "payment_method": "Loại TT"
+      },
+      "document_scope": "shop",
+      "evidence": {
+        "semantics": "public_test/data/dev_010/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_010/san_pham.csv",
+      "format": "csv",
+      "object": "san_pham.csv",
+      "header_row": 1,
+      "grain": "product",
+      "fields": {
+        "business_id": "Mã vạch",
+        "item": "ten_hang",
+        "unit": "Đơn vị tính",
+        "amount": "Giá bán"
+      },
+      "document_scope": "shop",
+      "evidence": {
+        "semantics": "public_test/data/dev_010/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_010/khach_hang.csv",
+      "format": "csv",
+      "object": "khach_hang.csv",
+      "header_row": 1,
+      "grain": "customer",
+      "fields": {
+        "business_id": "Mã khách",
+        "customer": "Khách lẻ/sỉ"
+      },
+      "document_scope": "shop",
+      "evidence": {
+        "semantics": "public_test/data/dev_010/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    }
+  ],
+  "lineage_policy": "cell and source row",
+  "safety_policy": "fail_closed"
+}

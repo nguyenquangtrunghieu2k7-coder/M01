@@ -1,0 +1,8 @@
+{
+  "shop_id": "dev_006",
+  "contract_version": "0.2.0",
+  "approval_status": "BLOCKED_NO_APPROVED_MAPPING",
+  "sources": [],
+  "lineage_policy": "cell and source row",
+  "safety_policy": "fail_closed"
+}

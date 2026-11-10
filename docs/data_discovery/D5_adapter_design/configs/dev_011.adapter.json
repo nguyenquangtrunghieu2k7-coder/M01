@@ -1,0 +1,65 @@
+{
+  "schema_version": "0.1.0",
+  "config_version": "0.1.0",
+  "contract_version": "0.1.0",
+  "shop_id": "dev_011",
+  "family_id": "F03_MULTI_LEDGER",
+  "d2_subfamily": "B3 - Manual phone-sales ledger",
+  "status": "BLOCKED_PENDING_MAPPING_APPROVAL",
+  "profile_report_path": "reports/profiling/d4/profile_report.json",
+  "profile_fingerprint": null,
+  "source_objects": [
+    {
+      "source_path": "public_test/data/dev_011/SoBanHang.xlsx",
+      "object_selector": "Ghi tắt",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-109",
+      "profile_schema_sha256": "1278de0bf753576a2e78238fb5d3405313d43a44a188094b6e33c77547f928ac",
+      "column_names_observed": [
+        "Ghi tắt",
+        "Tên hàng",
+        "Loại"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_011/SoBanHang.xlsx",
+      "object_selector": "Sổ bán hàng",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-110",
+      "profile_schema_sha256": "03260429afee85a2d4c88795b12112601ca44a7a9fc5fd10587927410d09246b",
+      "column_names_observed": [
+        "Ngày",
+        "STT",
+        "Khách",
+        "Hàng",
+        "IMEI",
+        "SL",
+        "Giá",
+        "Thành tiền",
+        "Bớt",
+        "Thu máy cũ",
+        "Khách trả",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    }
+  ],
+  "mappings": [],
+  "join_rules": [],
+  "validation_policy": {
+    "fail_closed": true,
+    "quarantine_on_parse_error": true,
+    "reconciliation_tolerance": null
+  },
+  "unresolved_questions": [
+    "Validate business grain, repeated headers, totals and row-level semantics against actual samples",
+    "Approve source-to-canonical mappings with reviewer evidence",
+    "Confirm join rules and numeric/date/unit parsing before activation"
+  ],
+  "mapping_approval_status": "UNVERIFIED"
+}

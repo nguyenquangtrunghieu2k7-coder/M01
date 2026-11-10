@@ -1,0 +1,13 @@
+{
+  "family_id": "F04_RELATIONAL",
+  "name": "Relational SQLite and multi-CSV",
+  "design_status": "PROPOSED",
+  "source_grain_hypothesis": "table_row",
+  "canonical_outputs": "document + line + payment + references",
+  "risk_to_validate": "explicit FK/cardinality checks; prevent fanout",
+  "physical_columns": null,
+  "required_profile_evidence": true,
+  "mapping_defaults": [],
+  "join_rules": [],
+  "shop_overrides_required": true
+}

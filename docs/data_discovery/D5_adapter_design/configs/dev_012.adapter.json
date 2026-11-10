@@ -1,0 +1,293 @@
+{
+  "schema_version": "0.1.0",
+  "config_version": "0.1.0",
+  "contract_version": "0.1.0",
+  "shop_id": "dev_012",
+  "family_id": "F06_SERVICE_TICKET",
+  "d2_subfamily": "B4 - Service-ticket ledger (not retail invoice)",
+  "status": "BLOCKED_PENDING_MAPPING_APPROVAL",
+  "profile_report_path": "reports/profiling/d4/profile_report.json",
+  "profile_fingerprint": null,
+  "source_objects": [
+    {
+      "source_path": "public_test/data/dev_012/DanhSachTho.xlsx",
+      "object_selector": "Sheet1",
+      "format": "xlsx",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-111",
+      "profile_schema_sha256": "0df3fcd51b9af832423efe4764b70f4bf17dc71c9aada4f8f3e8dfe49f9d7979",
+      "column_names_observed": [
+        "Họ tên",
+        "Ngày vào làm",
+        "Hoa hồng (%)"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T7-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-112",
+      "profile_schema_sha256": "6401050a50fe2147f91b95e0d46230e8be91e1ab2d904ac76ed10d6728686db5",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T8-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-113",
+      "profile_schema_sha256": "bd4b7679a18b4ef3a30ba1d7e43a4b74c6cc136742d6e91091872525906738af",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T9-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-114",
+      "profile_schema_sha256": "eefea5fdd506daf32d44bc230907be2c26bbcff892f6629efc26addb07d70137",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T10-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-115",
+      "profile_schema_sha256": "9c842c4d6877a97294e02a2eef980d2b21f50c258af4c8b9153798e9cd35d222",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T11-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-116",
+      "profile_schema_sha256": "fa61d6282cb23df5b237d785a0b11eae1e3644b012080c1d7f5cf105b389ff51",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T12-2025",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-117",
+      "profile_schema_sha256": "c8b012dbc7fb73c7eaea1e8d2c571d0072e1f1882db8458d9c2b5ee8ab8c50c8",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T1-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-118",
+      "profile_schema_sha256": "e3ba4fde7d7dc05747faaa21ef765c561b3d9f7cdc11568580d77ef8b6a5522e",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T2-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-119",
+      "profile_schema_sha256": "6b5f9e88e95d8dac27fad8ba2c6cd536482c2766691924a008bd04c2d9ec8848",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T3-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-120",
+      "profile_schema_sha256": "b5a3c246ee613e15e97fd183047741667f832cd9741c470ba554dbf6b265fb36",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T4-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-121",
+      "profile_schema_sha256": "6ea728a81d02d673a130b431c028426fac4c67372a017175905d75ed21a2e7f2",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T5-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-122",
+      "profile_schema_sha256": "62d5007a31c1d8d79655947d13230040ed945270e8e4c8c80ee378e062259580",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T6-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-123",
+      "profile_schema_sha256": "9c71fdc7da0e1968e3e2b8e79d2a04a08d8936e8c3d2051e6bb1309af7c1c062",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T7-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-124",
+      "profile_schema_sha256": "4a3a0deb919f8682792f8eec3703bf34ceaf32d3f038457572c9e533355f5681",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "object_selector": "T8-2026",
+      "format": "xlsx",
+      "header_row_observed": 2,
+      "profile_object_id": "D4-125",
+      "profile_schema_sha256": "7d94b4a9988c9946759cfe32ec640907ba29137328845567560b13ffe71f2a54",
+      "column_names_observed": [
+        "Ngày",
+        "Xe",
+        "Làm gì",
+        "Thợ",
+        "Tiền",
+        "Ghi chú"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    }
+  ],
+  "mappings": [],
+  "join_rules": [],
+  "validation_policy": {
+    "fail_closed": true,
+    "quarantine_on_parse_error": true,
+    "reconciliation_tolerance": null
+  },
+  "unresolved_questions": [
+    "Validate business grain, repeated headers, totals and row-level semantics against actual samples",
+    "Approve source-to-canonical mappings with reviewer evidence",
+    "Confirm join rules and numeric/date/unit parsing before activation"
+  ],
+  "mapping_approval_status": "UNVERIFIED"
+}

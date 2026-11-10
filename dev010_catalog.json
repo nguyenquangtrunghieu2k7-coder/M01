@@ -1,0 +1,66 @@
+{
+  "shop_id": "dev_010",
+  "version_id": "03cabab374b2bd5d54143ec24068",
+  "validation_status": "PROVISIONAL_NOT_FOR_PRODUCTION",
+  "contract_version": "0.2.0",
+  "source_objects_processed": 5,
+  "row_counts": {
+    "orders": 23311,
+    "order_lines": 45025,
+    "order_adjustments": 0,
+    "products": 60,
+    "customers": 260,
+    "entity_aliases": 0,
+    "unit_conversions": 0,
+    "payments": 26246,
+    "purchase_receipts": 0,
+    "purchase_lines": 0,
+    "returns": 0,
+    "inventory_events": 0,
+    "inventory_snapshots": 0,
+    "lots": 0,
+    "lot_allocations": 0,
+    "price_history": 0,
+    "expenses": 0,
+    "deliveries": 0,
+    "service_visits": 0,
+    "visit_tasks": 0,
+    "trade_ins": 0,
+    "installment_schedules": 0,
+    "warranty_visits": 0
+  },
+  "issue_counts": {
+    "PARSE_AMOUNT": 1856,
+    "PARSE_PAID": 1579,
+    "DUPLICATE_ORDER_KEY": 19,
+    "PARSE_DEBT": 9,
+    "PARSE_QUANTITY": 226,
+    "PARSE_UNIT_PRICE": 226,
+    "REPEATED_HEADER": 226
+  },
+  "capabilities": {
+    "order_count": true,
+    "line_item_analysis": true,
+    "product_analysis": true,
+    "payment_events": true,
+    "inventory_as_of": false,
+    "service_visits": false
+  },
+  "scope": {
+    "date_range": "derived from successfully parsed event dates; inspect DB",
+    "snapshot_dates": []
+  },
+  "join_keys": {
+    "orders.order_lines": "scoped source business id; document_uid differs for grouped-line order, pending reconciliation"
+  },
+  "approval_status": "EVIDENCE_VALIDATED_NOT_APPROVED",
+  "observed_sources": [
+    "public_test/data/dev_010/don_hang.csv::don_hang.csv",
+    "public_test/data/dev_010/chi_tiet_don.csv::chi_tiet_don.csv",
+    "public_test/data/dev_010/thanh_toan.csv::thanh_toan.csv",
+    "public_test/data/dev_010/san_pham.csv::san_pham.csv",
+    "public_test/data/dev_010/khach_hang.csv::khach_hang.csv"
+  ],
+  "unsupported_are_not_zero": true,
+  "notes": "Provisional outputs cannot serve production indicators; summary-only does not emit fake lines. Raw inputs remain external, pinned by sha256; staged raw_json retains each ingested row."
+}

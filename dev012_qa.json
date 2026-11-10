@@ -1,0 +1,70 @@
+{
+  "shop_id": "dev_012",
+  "version_id": "a58b7bd7139285604549c1a453ea",
+  "validation_status": "PROVISIONAL_NOT_FOR_PRODUCTION",
+  "contract_version": "0.2.0",
+  "source_objects_processed": 14,
+  "row_counts": {
+    "orders": 0,
+    "order_lines": 0,
+    "order_adjustments": 0,
+    "products": 0,
+    "customers": 0,
+    "entity_aliases": 0,
+    "unit_conversions": 0,
+    "payments": 0,
+    "purchase_receipts": 0,
+    "purchase_lines": 0,
+    "returns": 0,
+    "inventory_events": 0,
+    "inventory_snapshots": 0,
+    "lots": 0,
+    "lot_allocations": 0,
+    "price_history": 0,
+    "expenses": 0,
+    "deliveries": 0,
+    "service_visits": 6055,
+    "visit_tasks": 0,
+    "trade_ins": 0,
+    "installment_schedules": 0,
+    "warranty_visits": 0
+  },
+  "issue_counts": {
+    "PARSE_AMOUNT": 5,
+    "PARSE_DATE": 18
+  },
+  "capabilities": {
+    "order_count": false,
+    "line_item_analysis": false,
+    "product_analysis": false,
+    "payment_events": false,
+    "inventory_as_of": false,
+    "service_visits": true
+  },
+  "scope": {
+    "date_range": "derived from successfully parsed event dates; inspect DB",
+    "snapshot_dates": []
+  },
+  "join_keys": {
+    "orders.order_lines": "scoped source business id; document_uid differs for grouped-line order, pending reconciliation"
+  },
+  "approval_status": "EVIDENCE_VALIDATED_NOT_APPROVED",
+  "observed_sources": [
+    "public_test/data/dev_012/SoSuaXe.xlsx::T7-2025",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T8-2025",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T9-2025",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T10-2025",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T11-2025",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T12-2025",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T1-2026",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T2-2026",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T3-2026",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T4-2026",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T5-2026",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T6-2026",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T7-2026",
+    "public_test/data/dev_012/SoSuaXe.xlsx::T8-2026"
+  ],
+  "unsupported_are_not_zero": true,
+  "notes": "Provisional outputs cannot serve production indicators; summary-only does not emit fake lines. Raw inputs remain external, pinned by sha256; staged raw_json retains each ingested row."
+}

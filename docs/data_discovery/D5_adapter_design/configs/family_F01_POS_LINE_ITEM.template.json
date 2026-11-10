@@ -1,0 +1,13 @@
+{
+  "family_id": "F01_POS_LINE_ITEM",
+  "name": "POS line-item and adjustments",
+  "design_status": "PROPOSED",
+  "source_grain_hypothesis": "invoice_line",
+  "canonical_outputs": "line + document + optional adjustments",
+  "risk_to_validate": "split non-product rows; avoid duplicated header totals",
+  "physical_columns": null,
+  "required_profile_evidence": true,
+  "mapping_defaults": [],
+  "join_rules": [],
+  "shop_overrides_required": true
+}

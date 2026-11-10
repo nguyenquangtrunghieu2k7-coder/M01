@@ -1,0 +1,9 @@
+{
+  "So_chi_tiet_ban_hang.xlsx::Sheet1": {
+    "header_row": 4
+  },
+  "BanHang_T10_2025.xlsx::DonHang_ChiTiet": {
+    "header_row": 4
+  },
+  "profiler_note": "Ví dụ minh họa. Key thực tế là <filename>::<sheet_name>; cần bổ sung theo đúng tên file/sheet sau khi kiểm tra."
+}

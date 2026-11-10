@@ -1,0 +1,141 @@
+{
+  "schema_version": "0.1.0",
+  "config_version": "0.1.0",
+  "contract_version": "0.1.0",
+  "shop_id": "dev_010",
+  "family_id": "F04_RELATIONAL",
+  "d2_subfamily": "C2 - Multi-CSV relational transaction model",
+  "status": "BLOCKED_PENDING_MAPPING_APPROVAL",
+  "profile_report_path": "reports/profiling/d4/profile_report.json",
+  "profile_fingerprint": null,
+  "source_objects": [
+    {
+      "source_path": "public_test/data/dev_010/chi_tiet_don.csv",
+      "object_selector": "chi_tiet_don.csv",
+      "format": "csv",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-104",
+      "profile_schema_sha256": "ed527b48d2f994a29ce41ca5ebdb0e682c523d55d0bc352bb0fe0efc49d2465c",
+      "column_names_observed": [
+        "Mã bill",
+        "Cộng",
+        "CK",
+        "SoLuong",
+        "Mã H.hóa",
+        "SL quy đổi",
+        "No.",
+        "Đơn giá (đ)",
+        "dvt"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_010/don_hang.csv",
+      "object_selector": "don_hang.csv",
+      "format": "csv",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-105",
+      "profile_schema_sha256": "f4c301289dd4c7d2f910c786ddd79a6dffcd648879aa0ca3c214866dea79bc3b",
+      "column_names_observed": [
+        "Kênh đặt",
+        "Thành tiền",
+        "Số CT",
+        "Con no",
+        "Date",
+        "Phương thức TT",
+        "Tiền giảm",
+        "Phí vận chuyển",
+        "Khách trả",
+        "Mã thẻ",
+        "Xử lý"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_010/khach_hang.csv",
+      "object_selector": "khach_hang.csv",
+      "format": "csv",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-106",
+      "profile_schema_sha256": "d138fe154d8bff0f0968566bfc406b66af852dce5beb2ad9fabc581892aa22dd",
+      "column_names_observed": [
+        "Người tạo",
+        "Ghi chú KH",
+        "Khách lẻ/sỉ",
+        "Loại khách",
+        "Mã số thuế",
+        "Loại hình khách",
+        "Mã khách",
+        "Email",
+        "Tổng điểm",
+        "Trạng thái",
+        "Số CMND/CCCD",
+        "Phone",
+        "Công ty"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_010/san_pham.csv",
+      "object_selector": "san_pham.csv",
+      "format": "csv",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-107",
+      "profile_schema_sha256": "2c8879a950a4ef63dd23b6fb2f093fe4165f2a563e4964d76aaa29b25d9ca6ef",
+      "column_names_observed": [
+        "Mô tả chi tiết",
+        "Mẫu ghi chú",
+        "Loại hàng hóa",
+        "Thương hiệu",
+        "Đơn vị tính",
+        "Ghi chú",
+        "Bảo hành",
+        "Nhóm hàng",
+        "Mã vạch EAN",
+        "Hình ảnh (url1,url2...)",
+        "ten_hang",
+        "Thuộc tính",
+        "Trọng lượng",
+        "Giá bán",
+        "Mã vạch",
+        "Được bán trực tiếp",
+        "Mã HH Liên quan"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    },
+    {
+      "source_path": "public_test/data/dev_010/thanh_toan.csv",
+      "object_selector": "thanh_toan.csv",
+      "format": "csv",
+      "header_row_observed": 1,
+      "profile_object_id": "D4-108",
+      "profile_schema_sha256": "6cbf26f4ece86e1a6cfe3547cebde0beeefcc6724e08a91dac41bf1ff0e5ec3b",
+      "column_names_observed": [
+        "Loại TT",
+        "Ngay thu",
+        "So tien",
+        "Mã đơn",
+        "Mã TT"
+      ],
+      "grain": "UNVERIFIED",
+      "mapping_status": "UNVERIFIED"
+    }
+  ],
+  "mappings": [],
+  "join_rules": [],
+  "validation_policy": {
+    "fail_closed": true,
+    "quarantine_on_parse_error": true,
+    "reconciliation_tolerance": null
+  },
+  "unresolved_questions": [
+    "Validate business grain, repeated headers, totals and row-level semantics against actual samples",
+    "Approve source-to-canonical mappings with reviewer evidence",
+    "Confirm join rules and numeric/date/unit parsing before activation"
+  ],
+  "mapping_approval_status": "UNVERIFIED"
+}

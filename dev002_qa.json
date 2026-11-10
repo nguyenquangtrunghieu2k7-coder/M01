@@ -1,0 +1,61 @@
+{
+  "shop_id": "dev_002",
+  "version_id": "834afcc682b20c36c41c86071a91",
+  "validation_status": "PROVISIONAL_NOT_FOR_PRODUCTION",
+  "contract_version": "0.2.0",
+  "source_objects_processed": 1,
+  "row_counts": {
+    "orders": 3069,
+    "order_lines": 4867,
+    "order_adjustments": 0,
+    "products": 0,
+    "customers": 0,
+    "entity_aliases": 0,
+    "unit_conversions": 0,
+    "payments": 0,
+    "purchase_receipts": 0,
+    "purchase_lines": 0,
+    "returns": 0,
+    "inventory_events": 0,
+    "inventory_snapshots": 0,
+    "lots": 0,
+    "lot_allocations": 0,
+    "price_history": 0,
+    "expenses": 0,
+    "deliveries": 0,
+    "service_visits": 0,
+    "visit_tasks": 0,
+    "trade_ins": 0,
+    "installment_schedules": 0,
+    "warranty_visits": 0
+  },
+  "issue_counts": {
+    "MISSING_LINE_FIELDS": 32,
+    "PARSE_DATE": 22,
+    "PARSE_QUANTITY": 22,
+    "PARSE_UNIT_PRICE": 22,
+    "PARSE_AMOUNT": 22,
+    "REPEATED_HEADER": 22
+  },
+  "capabilities": {
+    "order_count": true,
+    "line_item_analysis": true,
+    "product_analysis": true,
+    "payment_events": false,
+    "inventory_as_of": false,
+    "service_visits": false
+  },
+  "scope": {
+    "date_range": "derived from successfully parsed event dates; inspect DB",
+    "snapshot_dates": []
+  },
+  "join_keys": {
+    "orders.order_lines": "scoped source business id; document_uid differs for grouped-line order, pending reconciliation"
+  },
+  "approval_status": "EVIDENCE_VALIDATED_NOT_APPROVED",
+  "observed_sources": [
+    "public_test/data/dev_002/BanHang_T1_2025.xlsx::DonHang_ChiTiet"
+  ],
+  "unsupported_are_not_zero": true,
+  "notes": "Provisional outputs cannot serve production indicators; summary-only does not emit fake lines. Raw inputs remain external, pinned by sha256; staged raw_json retains each ingested row."
+}

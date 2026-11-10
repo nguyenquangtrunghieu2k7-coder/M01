@@ -1,0 +1,275 @@
+{
+  "shop_id": "dev_012",
+  "contract_version": "0.2.0",
+  "approval_status": "EVIDENCE_VALIDATED_NOT_APPROVED",
+  "sources": [
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T7-2025",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T8-2025",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T9-2025",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T10-2025",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T11-2025",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T12-2025",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T1-2026",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T2-2026",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T3-2026",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T4-2026",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T5-2026",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T6-2026",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T7-2026",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    },
+    {
+      "path": "public_test/data/dev_012/SoSuaXe.xlsx",
+      "format": "xlsx",
+      "object": "T8-2026",
+      "header_row": 2,
+      "grain": "service_visit",
+      "fields": {
+        "date": "Ngày",
+        "vehicle": "Xe",
+        "work_text": "Làm gì",
+        "mechanic": "Thợ",
+        "amount": "Tiền",
+        "note": "Ghi chú"
+      },
+      "evidence": {
+        "semantics": "public_test/data/dev_012/README.md",
+        "physical_columns": "profile_report.json"
+      }
+    }
+  ],
+  "lineage_policy": "cell and source row",
+  "safety_policy": "fail_closed"
+}

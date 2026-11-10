@@ -1,0 +1,13 @@
+{
+  "family_id": "F05_SUMMARY_ONLY",
+  "name": "Invoice summary",
+  "design_status": "PROPOSED",
+  "source_grain_hypothesis": "invoice",
+  "canonical_outputs": "document + event",
+  "risk_to_validate": "no invented line items or quantities",
+  "physical_columns": null,
+  "required_profile_evidence": true,
+  "mapping_defaults": [],
+  "join_rules": [],
+  "shop_overrides_required": true
+}

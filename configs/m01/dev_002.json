@@ -1,0 +1,32 @@
+{
+  "shop_id": "dev_002",
+  "contract_version": "0.2.0",
+  "approval_status": "EVIDENCE_VALIDATED_NOT_APPROVED",
+  "sources": [
+    {
+      "path": "public_test/data/dev_002/BanHang_T1_2025.xlsx",
+      "format": "xlsx",
+      "object": "DonHang_ChiTiet",
+      "header_row": 4,
+      "grain": "line_item",
+      "fields": {
+        "business_id": "Mã đơn hàng",
+        "date": "Ngày đặt hàng",
+        "status": "Trạng thái đơn hàng",
+        "customer": "Tên khách hàng",
+        "item": "Tên sản phẩm",
+        "quantity": "Số lượng sản phẩm",
+        "unit_price": "Giá sản phẩm",
+        "amount": "Tổng tiền",
+        "unit": "Đơn vị tính"
+      },
+      "evidence": {
+        "business_semantics": "public_test/data/dev_002/README.md",
+        "physical_columns": "profile_report.json",
+        "approval": "review_required"
+      }
+    }
+  ],
+  "lineage_policy": "cell and source row",
+  "safety_policy": "fail_closed"
+}

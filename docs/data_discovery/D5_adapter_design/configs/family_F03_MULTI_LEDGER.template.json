@@ -1,0 +1,13 @@
+{
+  "family_id": "F03_MULTI_LEDGER",
+  "name": "Hybrid and manual multi-ledger",
+  "design_status": "PROPOSED",
+  "source_grain_hypothesis": "ledger_row",
+  "canonical_outputs": "typed event + optional line",
+  "risk_to_validate": "separate sales, cash, debt, warranty; no forced joins",
+  "physical_columns": null,
+  "required_profile_evidence": true,
+  "mapping_defaults": [],
+  "join_rules": [],
+  "shop_overrides_required": true
+}

@@ -1,0 +1,33 @@
+{
+  "profile_objects": 163,
+  "shops": 14,
+  "profile_errors": 0,
+  "matched_source_objects": 163,
+  "unmatched_source_objects": 0,
+  "mixed_type_objects": 117,
+  "profiled_columns_total": 1564,
+  "source_files_in_archive": 80,
+  "inputs_sha256": {
+    "archive.zip": "809d6b5a4b4273a5820c070f03b10947b360bcc12b0d08c9ea9d9a10e8f49763",
+    "profile_report.json": "d0124dbc6cb80b39ebfe85fd2a42d0e45f5b63706ff559e3fadc4a97e2cdc8bd",
+    "profile_errors.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "profile_summary.csv": "dd1fd65c90d8711d078bc81b107c01527902f0dc9a1b5143c356770d3d81a4b8"
+  },
+  "coverage_by_shop": {
+    "dev_001": 2,
+    "dev_002": 18,
+    "dev_003": 11,
+    "dev_004": 24,
+    "dev_005": 23,
+    "dev_006": 17,
+    "dev_007": 3,
+    "dev_008": 4,
+    "dev_009": 1,
+    "dev_010": 5,
+    "dev_011": 2,
+    "dev_012": 15,
+    "dev_013": 18,
+    "dev_014": 20
+  },
+  "unmatched_sources": []
+}

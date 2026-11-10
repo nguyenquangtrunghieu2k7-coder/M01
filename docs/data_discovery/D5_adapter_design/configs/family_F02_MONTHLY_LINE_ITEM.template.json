@@ -1,0 +1,13 @@
+{
+  "family_id": "F02_MONTHLY_LINE_ITEM",
+  "name": "Monthly name-linked exports",
+  "design_status": "PROPOSED",
+  "source_grain_hypothesis": "invoice_line",
+  "canonical_outputs": "line + monthly partition",
+  "risk_to_validate": "detect schema drift; do not infer product identity from name",
+  "physical_columns": null,
+  "required_profile_evidence": true,
+  "mapping_defaults": [],
+  "join_rules": [],
+  "shop_overrides_required": true
+}
