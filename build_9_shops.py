@@ -112,6 +112,7 @@ def create_db(path):
  CREATE TABLE source_lineage(lineage_uid TEXT PRIMARY KEY,entity_table TEXT,entity_uid TEXT,shop_id TEXT,source_id TEXT,source_row INTEGER,source_cell TEXT,transform_id TEXT,raw_value TEXT,version_id TEXT);
  CREATE TABLE business_catalog(catalog_key TEXT PRIMARY KEY,catalog_json TEXT);
  CREATE TABLE source_reference_records(reference_uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,source_object TEXT,source_row INTEGER,reference_key TEXT,raw_json TEXT,version_id TEXT);
+ CREATE TABLE family_native_records(record_uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,source_row INTEGER,source_object TEXT,family TEXT,family_role TEXT,raw_json TEXT,version_id TEXT);
  CREATE TABLE duplicate_source_rows(duplicate_uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,duplicate_source_row INTEGER,retained_source_row INTEGER,entity_table TEXT,version_id TEXT);''')
  for t in TABLES:c.execute(f'''CREATE TABLE {t}(uid TEXT PRIMARY KEY,shop_id TEXT,source_id TEXT,source_row INTEGER,source_business_id TEXT,event_date TEXT,amount TEXT,quantity TEXT,unit TEXT,document_uid TEXT,display_name TEXT,status_raw TEXT,attributes_json TEXT,version_id TEXT)''')
  c.execute('CREATE INDEX idx_lineage_entity ON source_lineage(entity_table,entity_uid)');return c
@@ -157,7 +158,7 @@ def main():
    if physical!=set(family_roles):
     raise SystemExit(f'Source contract mismatch for {shop}: missing={sorted(physical-set(family_roles))}, stale={sorted(set(family_roles)-physical)}')
   c=create_db(target);version=uid(shop,'mapping_candidate_v1');c.execute('INSERT INTO dataset_versions VALUES(?,?,?,?,?,?)',(version,shop,'0.3.0-candidate','evidence-candidate',dt.datetime.now(dt.timezone.utc).isoformat(),'PROVISIONAL_NOT_FOR_PRODUCTION'))
-  stats=Counter();reference_counts=Counter();duplicate_counts=Counter();unmapped=[];issues=Counter();source_objects=0;grouped=set();total_files=0
+  stats=Counter();reference_counts=Counter();family_native_counts=Counter();duplicate_counts=Counter();unmapped=[];issues=Counter();source_objects=0;grouped=set();total_files=0
   # dev_006 order lines carry a product SKU and an order ID, not a product name
   # or transaction date. Both can be resolved against explicit, unique POS keys.
   pos_product_names={};pos_order_fields={}
@@ -241,6 +242,17 @@ def main():
     # Family-specialized objects without approved generic marts stay in a raw
     # reference layer with provenance; NEVER invent sales or payment semantics.
     if grain=='__source_only__':
+     # A family-native row is queryable by its exact business role, but has
+     # no fabricated amount, date, invoice, or M03 KPI approval.
+     actual_role=family_roles[(p.name,obj)] if family_roles is not None else 'unclassified'
+     native_uid=uid(src,rn,'family_native')
+     c.execute('INSERT INTO family_native_records VALUES(?,?,?,?,?,?,?,?,?)',
+       (native_uid,shop,src,rn,obj,family['family'],actual_role,
+        json.dumps(raw_preserved,ensure_ascii=False,default=str),version))
+     family_native_counts[actual_role]+=1
+     c.execute('INSERT OR IGNORE INTO source_lineage VALUES(?,?,?,?,?,?,?,?,?,?)',
+       (uid(native_uid,'source_lineage'),'family_native_records',native_uid,
+        shop,src,rn,None,'source_row',None,version))
      refid=uid(src,rn,'source_only')
      c.execute('INSERT INTO source_reference_records VALUES(?,?,?,?,?,?,?,?)',
        (refid,shop,src,obj,rn,uid(shop,obj,src,rn),
@@ -348,7 +360,7 @@ def main():
       for rn,row in enumerate(source.execute('SELECT * FROM "'+obj+'"'),2):yield rn,row
      consume(p,obj,get_rows(),'sqlite')
     source.close()
-  catalog={'shop_id':shop,'version_id':version,'validation_status':'PROVISIONAL_NOT_FOR_PRODUCTION','contract_version':'0.3.0-candidate','source_files_seen':total_files,'source_objects_processed':source_objects,'row_counts':dict(stats),'reference_counts':dict(reference_counts),'duplicate_row_counts':dict(duplicate_counts),'issue_counts':dict(issues),'unmapped_objects':unmapped,'capabilities':{t:stats[t]>0 for t in TABLES},'approval_status':'CANDIDATE_NOT_APPROVED','family':family.get('family') if family else None,'official_kpis_approved':[],'source_inventory_expected':len(family_roles) if family_roles is not None else None,'notes':'Candidate mappings, no inferred document totals. Raw data in staging, source provenance in lineage. No official KPI approval.'}
+  catalog={'shop_id':shop,'version_id':version,'validation_status':'PROVISIONAL_NOT_FOR_PRODUCTION','contract_version':'0.3.0-candidate','source_files_seen':total_files,'source_objects_processed':source_objects,'row_counts':dict(stats),'reference_counts':dict(reference_counts),'family_native_counts':dict(family_native_counts),'duplicate_row_counts':dict(duplicate_counts),'issue_counts':dict(issues),'unmapped_objects':unmapped,'capabilities':{t:stats[t]>0 for t in TABLES},'approval_status':'CANDIDATE_NOT_APPROVED','family':family.get('family') if family else None,'official_kpis_approved':[],'source_inventory_expected':len(family_roles) if family_roles is not None else None,'notes':'Candidate mappings, no inferred document totals. Raw data in staging, source provenance in lineage. No official KPI approval.'}
   c.execute('INSERT INTO business_catalog VALUES(?,?)',(shop,json.dumps(catalog,ensure_ascii=False)));c.commit();integrity=c.execute('PRAGMA integrity_check').fetchone()[0];c.close()
   manifest.append({'shop':shop,'integrity':integrity,'sources':source_objects,'rows':dict(stats),'reference_counts':dict(reference_counts),'duplicate_row_counts':dict(duplicate_counts),'unmapped':len(unmapped),'unmapped_objects':unmapped,'issues':dict(issues)});print(shop,'sources',source_objects,'rows',sum(stats.values()),'unmapped',len(unmapped),flush=True)
  (out/'mapping_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
