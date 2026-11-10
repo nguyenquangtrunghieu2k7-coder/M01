@@ -13,6 +13,8 @@ on:
       - 'tests/test_m03_contract_gate.py'
       - 'tests/test_dev006_extended_kpis.py'
       - 'scripts/dev006_extended_kpis.py'
+      - 'scripts/verify_dev006_extended_kpis.py'
+      - 'scripts/release_dev006_extended.py'
       - '.github/workflows/dev006-contract.yml'
 jobs:
   regression:
@@ -27,7 +29,7 @@ jobs:
       - name: Validate local release shell syntax
         run: bash -n scripts/build_and_release_dev006.sh
       - name: Compile dev006 acceptance and release scripts
-        run: python -m py_compile scripts/release_dev006_businessdata.py scripts/verify_dev006_m03_parity.py scripts/m03_consumer.py scripts/dev006_extended_kpis.py build_9_shops.py
+        run: python -m py_compile scripts/release_dev006_businessdata.py scripts/verify_dev006_m03_parity.py scripts/m03_consumer.py scripts/dev006_extended_kpis.py scripts/verify_dev006_extended_kpis.py scripts/release_dev006_extended.py build_9_shops.py
       - name: Candidate builder and exact dedup regressions
         run: PYTHONPATH=.:src python -m unittest discover -s tests -p 'test_candidate_builder_integrity.py' -v
       - name: M03 production gate contract
