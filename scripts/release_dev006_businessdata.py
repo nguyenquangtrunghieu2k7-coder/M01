@@ -68,7 +68,7 @@ def publish(pos,db,out,approver):
         if c.execute('PRAGMA integrity_check').fetchone()[0]!='ok':
             raise ValueError('Released SQLite integrity failed')
     # Test actual production-mode M03 opening and counts.
-    from m03_consumer import open_business_dataset, query_entity_count
+    from m03_consumer import open_business_dataset, query_entity_count, query_shop_revenue
     con,cat=open_business_dataset(derived)
     try:
         if query_entity_count(con,cat,'order_lines')!=checks['parity']['mart_lines']:
@@ -78,6 +78,11 @@ def publish(pos,db,out,approver):
            ('dev_006',)).fetchone()[0]
         if revenue!=checks['parity']['mart_revenue_after_dedup_vnd']:
             raise ValueError('M03 revenue smoke mismatch')
+        bounds=con.execute("SELECT MIN(event_date),MAX(event_date) FROM orders WHERE shop_id='dev_006'").fetchone()
+        from_reader=query_shop_revenue(con,cat,start_date=bounds[0],
+                                      end_date=bounds[1],as_of_date=bounds[1])
+        if from_reader!=revenue:
+            raise ValueError('M03 public KPI interface does not agree with accepted revenue')
     finally:con.close()
     with sqlite3.connect(derived) as c:
         schema={table:[col[1] for col in c.execute('PRAGMA table_info("'+table+'")')]
