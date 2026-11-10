@@ -74,12 +74,31 @@ def _vnd(value):
     return int(val)
 
 def _receipt(value):
-    if isinstance(value,(int,float)):return _vnd(value)
+    """Parse POS cash strings: 1,086tr == 1_086_000 VND.
+
+    The tr suffix denotes a decimal number of millions, whereas
+    dot-grouped plain đ values use thousands groups. Fail on ambiguity.
+    """
+    if isinstance(value,(int,float,Decimal)):return _vnd(value)
     if not isinstance(value,str):raise ValueError('Missing receipt amount')
-    cleaned=value.strip().replace('đ','').replace('₫','').replace(' ','')
-    if not re.fullmatch(r'[-+]?\d{1,3}(?:[.]\d{3})*|[-+]?\d+',cleaned):
-        raise ValueError('Ambiguous POS receipt money format: '+repr(value))
-    return int(cleaned.replace('.',''))
+    s=value.strip().lower().replace(' ','').replace('₫','').replace('đ','')
+    if s.endswith('tr'):
+        base=s[:-2]
+        if not re.fullmatch(r'[+-]?\d+(?:[.,]\d+)?',base):
+            raise ValueError('Ambiguous POS million amount: '+repr(value))
+        amount=Decimal(base.replace(',','.'))*1000000
+    elif s.endswith('k'):
+        base=s[:-1]
+        if not re.fullmatch(r'[+-]?\d+(?:[.,]\d+)?',base):
+            raise ValueError('Ambiguous POS thousand amount: '+repr(value))
+        amount=Decimal(base.replace(',','.'))*1000
+    else:
+        if not re.fullmatch(r'[+-]?(?:\d+|\d{1,3}(?:\.\d{3})+)',s):
+            raise ValueError('Ambiguous POS receipt money format: '+repr(value))
+        amount=Decimal(s.replace('.',''))
+    if amount!=amount.to_integral_value():
+        raise ValueError('Non-integer VND amount: '+repr(value))
+    return int(amount)
 
 def _within(day,first,last):
     return bool(day and first.isoformat()<=str(day)[:10]<=last.isoformat())
