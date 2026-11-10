@@ -70,5 +70,31 @@ class CandidateBuilderIntegrityTests(unittest.TestCase):
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM staging_rows').fetchone()[0],4)
                 self.assertEqual(db.execute('SELECT COUNT(*) FROM staging_rows s WHERE s.issue_count!=(SELECT COUNT(*) FROM validation_issues v WHERE v.source_id=s.source_id AND v.source_row=s.source_row)').fetchone()[0],0)
 
+    def test_dev006_reference_objects_are_preserved_with_lineage(self):
+        import json
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shop = root / 'public_test' / 'data' / 'dev_006'
+            shop.mkdir(parents=True)
+            with sqlite3.connect(shop / 'pos.sqlite') as db:
+                for obj, key in [('chi_nhanh','MaChiNhanh'), ('nha_cung_cap','MaNhaCungCap'),
+                                 ('nhan_vien','MaNhanVien'), ('thong_tin_thuoc','MaHangHoa')]:
+                    db.execute(f'CREATE TABLE {obj}(IDCuaHang TEXT,{key} TEXT,TenGoi TEXT)')
+                    db.execute(f"INSERT INTO {obj} VALUES('dev_006','K1','Test')")
+                db.commit()
+            out = root / 'output'
+            subprocess.run([sys.executable,str(SCRIPT),'--data-root',str(root),
+                            '--output',str(out),'--shops','dev_006'],
+                           check=True,capture_output=True,text=True)
+            with sqlite3.connect(out/'dev_006.sqlite') as db:
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM source_reference_records').fetchone()[0],4)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM staging_rows').fetchone()[0],4)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM raw_sources').fetchone()[0],4)
+                self.assertEqual(db.execute("SELECT COUNT(*) FROM source_lineage WHERE entity_table='source_reference_records'").fetchone()[0],4)
+                cat=json.loads(db.execute('SELECT catalog_json FROM business_catalog').fetchone()[0])
+                self.assertEqual(cat['unmapped_objects'],[])
+                self.assertEqual(sum(cat['reference_counts'].values()),4)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM validation_issues').fetchone()[0],0)
+
 if __name__ == '__main__':
     unittest.main()
