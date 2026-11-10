@@ -8,6 +8,11 @@ production approval. No PII or source rows are written to contracts.
 import argparse,csv,json,sqlite3,zipfile,xml.etree.ElementTree as ET
 from pathlib import Path
 
+try:
+    from .family_semantics import policy_for,validate_contract
+except ImportError:
+    from family_semantics import policy_for,validate_contract
+
 FAMILIES={
 'dev_001':'retail_single_export','dev_002':'retail_monthly_exports',
 'dev_003':'cafe_multi_source','dev_004':'building_materials_delivery',
@@ -91,13 +96,16 @@ def contract(shop,folder):
               'mapping_approval':'review_required',
               'semantic_evidence':f'public_test/data/{shop}/README.md'}
              for p,obj,fmt in inventory(folder)]
-    return {'shop_id':shop,'family':FAMILIES[shop],
+    result={'shop_id':shop,'family':FAMILIES[shop],
             'contract_version':'0.1.0-candidate','approval_status':'CANDIDATE_NOT_APPROVED',
             'official_kpis_approved':[],'source_manifest':entries,
             'raw_preservation_required':True,'lineage_required':True,
             'fail_closed':True,
             'do_not_infer':['invoice_lines_from_summary'] if shop=='dev_009' else [],
-            'rulebook':'public_test/rulebook.md'}
+            'rulebook':'public_test/rulebook.md',
+            'family_policy':policy_for(shop)}
+    validate_contract(result)
+    return result
 
 def main():
     p=argparse.ArgumentParser()
@@ -117,6 +125,7 @@ def main():
             destination.write_text(json.dumps(found,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         else:
             found=json.loads(destination.read_text(encoding='utf-8'))
+        validate_contract(found)
         physical={(p.name,obj,fmt) for p,obj,fmt in inventory(folder)}
         declared={(Path(s['path']).name,s['object'],s['format']) for s in found['source_manifest']}
         unclassified=[(Path(s['path']).name,s['object']) for s in found['source_manifest']
