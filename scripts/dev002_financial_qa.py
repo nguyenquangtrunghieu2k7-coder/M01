@@ -55,7 +55,7 @@ def main():
    sources[f]+=1
    oid=s(v.get(0));key=(f,rn)
    if not re.fullmatch(r'ORD\d+',oid):
-    kind='repeated_header' if oid=='Mã đơn hàng' else 'daily_summary' if 'TỔNG NGÀY' in s(v.get(4)) else 'non_transaction'
+    kind='repeated_header' if oid=='Mã đơn hàng' else 'daily_summary' if 'TỔNG NGÀY' in s(v.get(3)) else 'non_transaction'
     excluded[kind]+=1
     if db.execute('SELECT reason FROM excluded_rows WHERE file=? AND row=?',key).fetchone()[0]!=kind:fail('EXCLUDED_REASON',key)
     continue
