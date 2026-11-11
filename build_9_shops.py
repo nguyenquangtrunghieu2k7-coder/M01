@@ -129,6 +129,8 @@ def main():
   def consume(p,obj,iterator,fmt):
    nonlocal source_objects
    stem=p.stem;selector=stem if stem in EXPLICIT.get(shop,{}) else obj
+   # Monthly dev_005 workbooks all use DonHang_ChiTiet; map by observed sheet, not filename.
+   if shop=='dev_005' and re.fullmatch(r'BanHang_Thang\d{1,2}_20\d{2}',stem) and obj=='DonHang_ChiTiet':selector='DonHang_ChiTiet'
    grain=EXPLICIT.get(shop,{}).get(selector)
    if not grain:
     unmapped.append(p.name+'::'+obj);return
@@ -163,7 +165,7 @@ def main():
      bid,bid_col=pick(raw,['STT'])
     if grain=='order_lines' and shop=='dev_013':
      bid,bid_col=pick(raw,['HĐ'])
-     if str(name or '').strip().lower() in ('voucher','phí ship','phí vận chuyển','giảm giá'):
+     if (str(name or '').strip().lower() in ('voucher','phí ship','phí vận chuyển','giảm giá') or re.match(r'^dùng\s+\d+\s+điểm\b',str(name or '').strip().lower())):
       grain_row='order_adjustments'
      else:grain_row=grain
     else:grain_row=grain

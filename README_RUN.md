@@ -16,3 +16,10 @@ Every output has raw_sources, staging_rows, validation_issues, source_lineage, b
 **Known limitations:** Some sources have multirow headers, blank order IDs, and business-specific quantity/price conventions. These are not inferred. A blank STT in mobile phone journals is not assigned a guessed document ID. Money with ambiguous units is kept in source_values; date parsing is conservative. `source_values` may include PII: don't publish these SQLite files. For large shops processing may take several minutes and require significant disk space.
 
 For M03, only read tables with `business_catalog.capabilities[table] == true` and require separate semantic approval for official metrics.
+
+## Candidate mapping corrections (2026-11-10)
+
+- `dev_005`: the 17 `BanHang_ThangMM_YYYY.xlsx` files select the `DonHang_ChiTiet` worksheet as `order_lines` instead of silently skipping monthly sales.
+- `dev_013`: `Dùng <n> điểm` rows are `order_adjustments`, not products, alongside Voucher and Phí ship.
+
+These changes are **not** an approval of financial totals, inventory or KPI semantics. The nine-shop candidate builder remains separate from the main pipeline, and production remains fail-closed. Full-source regression and reconciliation are still required.
